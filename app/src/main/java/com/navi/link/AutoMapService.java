@@ -86,7 +86,7 @@ public class AutoMapService extends Service {
 
     private Notification buildNotification() {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("ShadowMap 导航")
+                .setContentTitle("Navi-Link")
                 .setContentText("悬浮窗导航运行中")
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(PendingIntent.getActivity(this, 0,

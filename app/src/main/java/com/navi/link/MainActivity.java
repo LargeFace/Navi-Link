@@ -31,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_IS_MINIMAL = "is_minimal_style";
     private static final String KEY_SCALE = "scale";
     private static final String KEY_THEME_COLOR = "theme_color";
-    private static final String PREFS_NAME = "floating_config";
+    private static final String KEY_IS_SERVICE_ONLY = "is_service_only";
+    public static final String PREFS_NAME = "floating_config";
     private static final int REQUEST_OVERLAY_PERMISSION = 100;
 
     private static final int[] THEME_COLORS = {
@@ -47,15 +48,20 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialCardView cardMinimal;
     private MaterialCardView cardNormal;
+    private MaterialCardView cardServiceOnly;
+    private MaterialCardView cardNormalStart;
     private LinearLayout llThemeColors;
     private RadioButton rbMinimal;
     private RadioButton rbNormal;
+    private RadioButton rbServiceOnly;
+    private RadioButton rbNormalStart;
     private SeekBar sbScale;
     private View[] themeChips;
     private TextView tvScaleValue;
     private TextView tvStatus;
 
     private boolean isMinimalStyle = false;
+    private boolean isServiceOnlyMode = false;
     private float scale = 1.0f;
     private int themeColor = 0xFF4FC3F7;
 
@@ -82,8 +88,12 @@ public class MainActivity extends AppCompatActivity {
     private void initViews() {
         cardNormal = findViewById(R.id.card_normal);
         cardMinimal = findViewById(R.id.card_minimal);
+        cardServiceOnly = findViewById(R.id.card_service_only);
+        cardNormalStart = findViewById(R.id.card_normal_start);
         rbNormal = findViewById(R.id.rb_normal);
         rbMinimal = findViewById(R.id.rb_minimal);
+        rbServiceOnly = findViewById(R.id.rb_service_only);
+        rbNormalStart = findViewById(R.id.rb_normal_start);
         sbScale = findViewById(R.id.sb_scale);
         tvScaleValue = findViewById(R.id.tv_scale_value);
         tvStatus = findViewById(R.id.tv_status);
@@ -104,7 +114,9 @@ public class MainActivity extends AppCompatActivity {
         isMinimalStyle = sp.getBoolean(KEY_IS_MINIMAL, false);
         scale = sp.getFloat(KEY_SCALE, 1.0f);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
+        isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
 
+        updateStartupSelection();
         updateStyleSelection();
 
         sbScale.setProgress((int) (((scale - 0.5f) / 1.5f) * 15));
@@ -114,6 +126,21 @@ public class MainActivity extends AppCompatActivity {
         tvScaleValue.setText(String.format("%.1fx", scale));
 
         initThemeColorChips();
+    }
+
+    private void selectStartupMode(boolean serviceOnly) {
+        if (isServiceOnlyMode == serviceOnly) return;
+        isServiceOnlyMode = serviceOnly;
+        updateStartupSelection();
+        savePreferences();
+    }
+
+    private void updateStartupSelection() {
+        rbServiceOnly.setChecked(isServiceOnlyMode);
+        rbNormalStart.setChecked(!isServiceOnlyMode);
+        int accentColor = getAccentColor();
+        cardServiceOnly.setStrokeColor(isServiceOnlyMode ? accentColor : Color.parseColor("#444444"));
+        cardNormalStart.setStrokeColor(isServiceOnlyMode ? Color.parseColor("#444444") : accentColor);
     }
 
     private void selectStyle(boolean minimal) {
@@ -137,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean(KEY_IS_MINIMAL, isMinimalStyle)
                 .putFloat(KEY_SCALE, scale)
                 .putInt(KEY_THEME_COLOR, themeColor)
+                .putBoolean(KEY_IS_SERVICE_ONLY, isServiceOnlyMode)
                 .apply();
     }
 
@@ -185,6 +213,8 @@ public class MainActivity extends AppCompatActivity {
         int accentColor = getAccentColor();
         cardNormal.setStrokeColor(isMinimalStyle ? Color.parseColor("#444444") : accentColor);
         cardMinimal.setStrokeColor(isMinimalStyle ? accentColor : Color.parseColor("#444444"));
+        cardServiceOnly.setStrokeColor(isServiceOnlyMode ? accentColor : Color.parseColor("#444444"));
+        cardNormalStart.setStrokeColor(isServiceOnlyMode ? Color.parseColor("#444444") : accentColor);
         sbScale.setProgressTintList(ColorStateList.valueOf(accentColor));
         sbScale.setThumbTintList(ColorStateList.valueOf(accentColor));
         tvScaleValue.setTextColor(accentColor);
@@ -204,6 +234,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+        cardServiceOnly.setOnClickListener(v -> selectStartupMode(true));
+        cardNormalStart.setOnClickListener(v -> selectStartupMode(false));
         cardNormal.setOnClickListener(v -> selectStyle(false));
         cardMinimal.setOnClickListener(v -> selectStyle(true));
 

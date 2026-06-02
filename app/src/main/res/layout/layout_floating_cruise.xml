@@ -15,8 +15,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:paddingStart="5dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="180dp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/tv_cruise_speed"
@@ -61,6 +60,7 @@
                 android:ellipsize="end"
                 android:maxWidth="120dp"
                 android:maxLines="1"
+                android:paddingEnd="5dp"
                 android:text="未知道路"
                 android:textColor="#FFFFFF"
                 android:textSize="24sp"

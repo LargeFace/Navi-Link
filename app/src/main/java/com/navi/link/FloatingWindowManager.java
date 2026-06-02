@@ -1,6 +1,7 @@
 package com.navi.link;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -50,6 +52,7 @@ public class FloatingWindowManager {
     private TextView tvCruiseSpeed;
     private TextView tvCruiseRoadName;
     private LinearLayout llTrafficLightsContainer;
+    private View tvCruiseMargin;
 
     // 常规导航 UI
     private ImageView ivTurnIcon;
@@ -102,6 +105,21 @@ public class FloatingWindowManager {
 
     private boolean shouldHideAfterRecreate = false;
     private boolean isWindowVisible = true;
+
+    // 数据缓存：recreateWindow 后立即恢复，避免闪烁默认内容
+    private boolean hasCachedData = false;
+    private int cachedSpeed = 0;
+    private String cachedRoadName = "";
+    private int cachedIcon = -1;
+    private String cachedDisNum = "";
+    private String cachedDisUnit = "";
+    private String cachedActionStr = "";
+    private String cachedSummaryStr = "";
+    private String cachedEta = "";
+    private int cachedProgress = 0;
+    private int cachedLightStatus = -1;
+    private int cachedLightDir = -1;
+    private int cachedLightCountdown = 0;
 
     // Runnable
     private final Runnable naviSwitchRunnable = this::doNaviSwitch;
@@ -286,7 +304,7 @@ public class FloatingWindowManager {
         View inflated = LayoutInflater.from(context).inflate(layoutRes, null);
         floatingView = inflated;
 
-        // 灵动岛模式外层需要 FrameLayout
+        // 灵动岛模式外层需要 FrameLayout（仅灵动岛，不关缩放）
         if (currentMode == MODE_NAVI && isMinimalStyle) {
             FrameLayout frameLayout = new FrameLayout(context);
             frameLayout.setClipChildren(false);
@@ -299,56 +317,48 @@ public class FloatingWindowManager {
             scaleTarget = null;
         }
 
+        // 物理缩放内容：缩小或放大时直接调整文字尺寸/padding/margin，窗口用 WRAP_CONTENT 自然撑开
+        if (scale != 1.0f) {
+            physicalScaleContent(inflated);
+        }
+
         bindViews();
+        restoreCachedData();
         measureNaturalSize();
 
         int layoutType = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                 : WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
 
-        int scaledWidth = naturalWidth;
-        int scaledHeight = naturalHeight;
-        if (naturalWidth > 0 && naturalHeight > 0 && scale > 1.0f) {
-            scaledWidth = (int) (naturalWidth * scale);
-            scaledHeight = (int) (naturalHeight * scale);
-        }
-
-        if (naturalWidth > 0 && naturalHeight > 0 && scale > 1.0f) {
-            layoutParams = new WindowManager.LayoutParams(scaledWidth, scaledHeight, layoutType,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    -3);
-        } else {
-            layoutParams = new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT, layoutType,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    -3);
-        }
+        // 始终 WRAP_CONTENT，物理缩放后内容尺寸已改变
+        layoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT, layoutType,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                -3);
 
         layoutParams.gravity = Gravity.TOP | Gravity.START;
 
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
         int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-        
+
+        // 物理缩放后 naturalWidth/Height 已是最终尺寸，无需再乘 scale
+        int viewWidth = naturalWidth;
+        int viewHeight = naturalHeight;
+
         if (savedPosX >= 0 && savedPosY >= 0) {
             // 有保存的位置，恢复它
-            int viewWidth = naturalWidth > 0 ? (int) (naturalWidth * scale) : 0;
-            int viewHeight = naturalHeight > 0 ? (int) (naturalHeight * scale) : 0;
-            
-            // 确保位置在屏幕范围内（处理贴边情况）
-            layoutParams.x = Math.max(0, Math.min(savedPosX, screenWidth - viewWidth));
-            layoutParams.y = Math.max(0, Math.min(savedPosY, screenHeight - viewHeight));
+            layoutParams.x = Math.max(0, Math.min(savedPosX, screenWidth - Math.max(viewWidth, 1)));
+            layoutParams.y = Math.max(0, Math.min(savedPosY, screenHeight - Math.max(viewHeight, 1)));
         } else {
             // 没有保存的位置，使用默认位置
-            if (scale <= 1.0f && naturalWidth > 0) {
-                layoutParams.x = (screenWidth - (int) (naturalWidth * scale)) / 2;
-                layoutParams.y = dpToPx(80);
+            if (viewWidth > 0) {
+                layoutParams.x = (screenWidth - viewWidth) / 2;
             } else {
                 layoutParams.x = 0;
-                layoutParams.y = dpToPx(80);
             }
+            layoutParams.y = dpToPx(80);
         }
 
         applyScale();
@@ -401,6 +411,7 @@ public class FloatingWindowManager {
         tvCruiseSpeed = null;
         tvCruiseRoadName = null;
         llTrafficLightsContainer = null;
+        tvCruiseMargin = null;
         ivTurnIcon = null;
         tvDistanceNum = null;
         tvDistanceUnit = null;
@@ -430,6 +441,7 @@ public class FloatingWindowManager {
         tvCruiseSpeed = floatingView.findViewById(R.id.tv_cruise_speed);
         tvCruiseRoadName = floatingView.findViewById(R.id.tv_cruise_road_name);
         llTrafficLightsContainer = floatingView.findViewById(R.id.ll_traffic_lights_container);
+        tvCruiseMargin = floatingView.findViewById(R.id.tv_margin);
     }
 
     private void bindNormalViews() {
@@ -469,6 +481,64 @@ public class FloatingWindowManager {
         }
     }
 
+    /**
+     * recreateWindow 后立即恢复缓存数据，避免布局短暂显示默认值闪烁
+     */
+    private void restoreCachedData() {
+        if (!hasCachedData) return;
+        if (currentMode == MODE_CRUISE) {
+            if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(cachedSpeed));
+            if (tvCruiseRoadName != null && !cachedRoadName.isEmpty()) tvCruiseRoadName.setText(cachedRoadName);
+        } else if (currentMode == MODE_NAVI) {
+            if (isMinimalStyle) {
+                if (cachedIcon >= 0) {
+                    int res = getTurnIconRes(cachedIcon);
+                    if (ivActionIconMin != null && res != 0) ivActionIconMin.setImageResource(res);
+                }
+                if (tvMinSpeed != null) tvMinSpeed.setText(String.valueOf(cachedSpeed));
+                if (tvDistanceNumMin != null) tvDistanceNumMin.setText(cachedDisNum);
+                if (tvDistanceUnitMin != null)
+                    tvDistanceUnitMin.setText(disNumIsNow(cachedDisNum) ? "进入" : cachedDisUnit);
+                if (tvRoadNameMin != null && !cachedRoadName.isEmpty()) tvRoadNameMin.setText(cachedRoadName);
+            } else {
+                if (cachedIcon >= 0) {
+                    int res = getTurnIconRes(cachedIcon);
+                    if (ivTurnIcon != null && res != 0) ivTurnIcon.setImageResource(res);
+                }
+                if (tvDistanceNum != null) tvDistanceNum.setText(cachedDisNum);
+                if (tvDistanceUnit != null)
+                    tvDistanceUnit.setText(disNumIsNow(cachedDisNum) ? "" : cachedDisUnit);
+                if (tvAction != null) tvAction.setText(cachedActionStr);
+                if (tvRoadName != null && !cachedRoadName.isEmpty()) tvRoadName.setText(cachedRoadName);
+                if (pbRoute != null) pbRoute.setProgress(cachedProgress);
+                if (tvSummary != null) tvSummary.setText(cachedSummaryStr);
+                if (tvEta != null) tvEta.setText(cachedEta);
+            }
+            // 恢复红绿灯胶囊
+            if (cachedLightCountdown > 0) {
+                View lightGroup;
+                ImageView lightIcon;
+                ImageView lightArrow;
+                TextView lightTime;
+                if (isMinimalStyle) {
+                    lightGroup = llTrafficLightGroupMin;
+                    lightIcon = ivLightIconMin;
+                    lightArrow = ivLightArrowMin;
+                    lightTime = tvLightTimeMin;
+                } else {
+                    lightGroup = llTrafficLightGroup;
+                    lightIcon = ivLightIcon;
+                    lightArrow = ivLightArrow;
+                    lightTime = tvLightTime;
+                }
+                if (lightGroup != null) lightGroup.setVisibility(View.VISIBLE);
+                if (lightIcon != null) lightIcon.setImageResource(getNaviLightIconRes(cachedLightStatus));
+                if (lightArrow != null) lightArrow.setImageResource(getNaviLightDirRes(cachedLightDir));
+                if (lightTime != null) lightTime.setText(String.valueOf(cachedLightCountdown));
+            }
+        }
+    }
+
     // ======================== 缩放 ========================
 
     private void measureNaturalSize() {
@@ -482,17 +552,6 @@ public class FloatingWindowManager {
     private void applyScale() {
         if (floatingView == null || layoutParams == null) return;
         disableClipOnParents(floatingView);
-
-        View target = scaleTarget;
-        if (target == null) {
-            target = floatingView.findViewById(R.id.root_layout);
-            if (target == null) target = floatingView;
-        }
-
-        target.setPivotX(0f);
-        target.setPivotY(0f);
-        target.setScaleX(scale);
-        target.setScaleY(scale);
     }
 
     private void disableClipOnParents(View view) {
@@ -506,38 +565,66 @@ public class FloatingWindowManager {
         }
     }
 
+    /** 物理缩放：递归调整文字大小、padding、margin、固定宽高 */
+    private void physicalScaleContent(View root) {
+        scaleViewRecursive(root, scale);
+    }
+
+    private void scaleViewRecursive(View view, float factor) {
+        if (view instanceof TextView) {
+            TextView tv = (TextView) view;
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tv.getTextSize() * factor);
+        }
+
+        view.setPadding(
+                Math.round(view.getPaddingLeft() * factor),
+                Math.round(view.getPaddingTop() * factor),
+                Math.round(view.getPaddingRight() * factor),
+                Math.round(view.getPaddingBottom() * factor));
+
+        // 缩放背景 drawable 圆角
+        Drawable bg = view.getBackground();
+        if (bg instanceof GradientDrawable) {
+            GradientDrawable gd = (GradientDrawable) bg.mutate();
+            float r = gd.getCornerRadius();
+            if (r > 0) {
+                gd.setCornerRadius(r * factor);
+            } else {
+                float[] radii = gd.getCornerRadii();
+                if (radii != null) {
+                    for (int i = 0; i < radii.length; i++) radii[i] *= factor;
+                    gd.setCornerRadii(radii);
+                }
+            }
+        }
+
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (lp != null) {
+            if (lp.width > 0) lp.width = Math.round(lp.width * factor);
+            if (lp.height > 0) lp.height = Math.round(lp.height * factor);
+            if (lp instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                mlp.leftMargin = Math.round(mlp.leftMargin * factor);
+                mlp.topMargin = Math.round(mlp.topMargin * factor);
+                mlp.rightMargin = Math.round(mlp.rightMargin * factor);
+                mlp.bottomMargin = Math.round(mlp.bottomMargin * factor);
+            }
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                scaleViewRecursive(vg.getChildAt(i), factor);
+            }
+        }
+    }
+
     public void updateScale(float newScale) {
+        if (Math.abs(this.scale - newScale) < 0.01f) return;
         this.scale = newScale;
-        if (!isShowing || floatingView == null || layoutParams == null) return;
-
-        applyScale();
-        if (naturalWidth <= 0 || naturalHeight <= 0) return;
-
-        int scaledWidth = (int) (naturalWidth * scale);
-        int scaledHeight = (int) (naturalHeight * scale);
-
-        if (scale > 1.0f) {
-            layoutParams.width = scaledWidth;
-            layoutParams.height = scaledHeight;
-        } else {
-            layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        if (isShowing) {
+            refreshWindow();
         }
-
-        int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-        
-        // 边界校正，确保位置在屏幕范围内
-        layoutParams.x = Math.max(0, Math.min(layoutParams.x, Math.max(0, screenWidth - scaledWidth)));
-        layoutParams.y = Math.max(0, Math.min(layoutParams.y, Math.max(0, screenHeight - scaledHeight)));
-        
-        try {
-            windowManager.updateViewLayout(floatingView, layoutParams);
-        } catch (Exception ignored) {
-        }
-        
-        // 更新位置后保存
-        saveWindowPosition();
     }
 
     // ======================== 主题颜色 ========================
@@ -579,7 +666,8 @@ public class FloatingWindowManager {
             GradientDrawable bgDrawable = new GradientDrawable();
             bgDrawable.setShape(GradientDrawable.RECTANGLE);
             bgDrawable.setColor(bgColor);
-            bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12)});
+            int cornerPx = Math.round(dpToPx(12) * scale);
+            bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
             layoutInfoBar.setBackground(bgDrawable);
         }
 
@@ -636,12 +724,19 @@ public class FloatingWindowManager {
                 if (action != MotionEvent.ACTION_CANCEL) return false;
             }
             handler.removeCallbacks(longPressCheck);
-            
+
+            // 单击（非拖拽、非长按）→ 打开设置页
+            if (!isDragging && !hasLongPressed && action == MotionEvent.ACTION_UP) {
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+
             // 拖拽结束后保存位置
             if (isDragging && !isPositionLocked) {
                 saveWindowPosition();
             }
-            
+
             return true;
         });
     }
@@ -649,6 +744,9 @@ public class FloatingWindowManager {
     // ======================== 巡航数据更新 ========================
 
     public void updateCruiseInfo(int speed, String roadName) {
+        hasCachedData = true;
+        cachedSpeed = speed;
+        cachedRoadName = roadName != null ? roadName : "";
         if (isShowing && floatingView != null && currentMode == MODE_CRUISE) {
             if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(speed));
             if (tvCruiseRoadName != null && roadName != null) tvCruiseRoadName.setText(roadName);
@@ -664,7 +762,9 @@ public class FloatingWindowManager {
 
         if (count == 0) {
             llTrafficLightsContainer.setVisibility(View.GONE);
+            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
             if (childCount > 0) llTrafficLightsContainer.removeAllViews();
+            remeasureWindow();
             return;
         }
 
@@ -675,6 +775,7 @@ public class FloatingWindowManager {
                 try {
                     JSONObject lightObj = lightsArray.getJSONObject(i);
                     View lightView = inflater.inflate(R.layout.item_cruise_traffic_light, llTrafficLightsContainer, false);
+                    if (scale != 1.0f) scaleViewRecursive(lightView, scale);
                     updateSingleLightView(lightView, lightObj);
                     llTrafficLightsContainer.addView(lightView);
                 } catch (Exception ignored) {
@@ -689,6 +790,7 @@ public class FloatingWindowManager {
             }
         }
         llTrafficLightsContainer.setVisibility(View.VISIBLE);
+        if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.VISIBLE);
         // 所有灯都倒计时为0时隐藏容器
         boolean allGone = true;
         for (int i = 0; i < llTrafficLightsContainer.getChildCount(); i++) {
@@ -697,7 +799,25 @@ public class FloatingWindowManager {
                 break;
             }
         }
-        if (allGone) llTrafficLightsContainer.setVisibility(View.GONE);
+        if (allGone) {
+            llTrafficLightsContainer.setVisibility(View.GONE);
+            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
+        }
+        remeasureWindow();
+    }
+
+    /**
+     * 重新测量并更新窗口尺寸，用于红绿灯动态增减后自适应宽度
+     */
+    private void remeasureWindow() {
+        if (floatingView == null || layoutParams == null) return;
+        measureNaturalSize();
+        layoutParams.width = naturalWidth;
+        layoutParams.height = naturalHeight;
+        try {
+            windowManager.updateViewLayout(floatingView, layoutParams);
+        } catch (Exception ignored) {
+        }
     }
 
     private void updateSingleLightView(View view, JSONObject jsonObj) throws Exception {
@@ -727,6 +847,16 @@ public class FloatingWindowManager {
     public void updateNaviInfo(int icon, String disNum, String disUnit, String actionStr,
                                String roadName, String summaryStr, String eta,
                                int progress, int curSpeed) {
+        hasCachedData = true;
+        cachedIcon = icon;
+        cachedDisNum = disNum;
+        cachedDisUnit = disUnit;
+        cachedActionStr = actionStr;
+        cachedRoadName = roadName;
+        cachedSummaryStr = summaryStr;
+        cachedEta = eta;
+        cachedProgress = progress;
+        cachedSpeed = curSpeed;
         if (isShowing && floatingView != null && currentMode == MODE_NAVI) {
             if (isMinimalStyle) {
                 updateMinimalNaviInfo(icon, disNum, disUnit, roadName, curSpeed);
@@ -765,6 +895,10 @@ public class FloatingWindowManager {
     // ======================== 红绿灯更新 ========================
 
     public void updateTrafficLight(int status, int dir, int countdown) {
+        hasCachedData = true;
+        cachedLightStatus = status;
+        cachedLightDir = dir;
+        cachedLightCountdown = countdown;
         if (!isShowing || floatingView == null || currentMode != MODE_NAVI) return;
 
         View lightGroup;
@@ -876,8 +1010,9 @@ public class FloatingWindowManager {
         
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
         int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-        int viewWidth = (int) (naturalWidth * scale);
-        int viewHeight = (int) (naturalHeight * scale);
+        // 物理缩放后 naturalWidth/Height 已是最终尺寸
+        int viewWidth = naturalWidth;
+        int viewHeight = naturalHeight;
         
         // 边界校正，确保位置在屏幕范围内
         int correctedX = Math.max(0, Math.min(layoutParams.x, screenWidth - viewWidth));
