@@ -17,6 +17,7 @@ import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String KEY_IS_MINIMAL = "is_minimal_style";
     private static final String KEY_STYLE_MODE = "style_mode";
-    private static final String KEY_SCALE = "scale";
     private static final String KEY_THEME_COLOR = "theme_color";
     private static final String KEY_IS_SERVICE_ONLY = "is_service_only";
     public static final String PREFS_NAME = "floating_config";
@@ -68,9 +68,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvStatus;
 
     private boolean isMinimalStyle = false;
-    private int styleMode = 0; // 0=normal, 1=minimal, 2=full
+    private int styleMode = 0;
     private boolean isServiceOnlyMode = false;
-    private float scale = 1.0f;
+
     private int themeColor = 0xFF4FC3F7;
 
     private boolean isDarkColor(int color) {
@@ -125,19 +125,17 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         isMinimalStyle = sp.getBoolean(KEY_IS_MINIMAL, false);
         styleMode = sp.getInt(KEY_STYLE_MODE, isMinimalStyle ? 1 : 0);
-        scale = sp.getFloat(KEY_SCALE, 1.0f);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
         isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
 
         updateStartupSelection();
         updateStyleSelection();
+        updateSeekBarToCurrentScale();
 
-        sbScale.setProgress((int) (((scale - 0.5f) / 1.5f) * 15));
         sbScale.setProgressTintList(ColorStateList.valueOf(getAccentColor()));
         sbScale.setThumbTintList(ColorStateList.valueOf(getAccentColor()));
         cvGoHome.setBackgroundTintList(ColorStateList.valueOf(getAccentColor()));
         tvScaleValue.setTextColor(getAccentColor());
-        tvScaleValue.setText(String.format("%.1fx", scale));
 
         initThemeColorChips();
     }
@@ -159,9 +157,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectStyle(int mode) {
         if (styleMode == mode) return;
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager == null || !manager.isActive()) {
+            Toast.makeText(this, "悬浮窗未收到导航数据，无法切换样式", Toast.LENGTH_SHORT).show();
+            return;
+        }
         styleMode = mode;
         isMinimalStyle = (mode == 1);
         updateStyleSelection();
+        updateSeekBarToCurrentScale();
         savePreferences();
         updateFloatingWindowStyle();
     }
@@ -180,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(KEY_IS_MINIMAL, isMinimalStyle)
                 .putInt(KEY_STYLE_MODE, styleMode)
-                .putFloat(KEY_SCALE, scale)
                 .putInt(KEY_THEME_COLOR, themeColor)
                 .putBoolean(KEY_IS_SERVICE_ONLY, isServiceOnlyMode)
                 .apply();
@@ -274,14 +277,17 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                scale = (progress / 15.0f) * 1.5f + 0.5f;
-                tvScaleValue.setText(String.format("%.1fx", scale));
+                float currentScale = (progress / 15.0f) * 1.5f + 0.5f;
+                tvScaleValue.setText(String.format("%.1fx", currentScale));
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                savePreferences();
-                updateFloatingWindowScale();
+                float newScale = (seekBar.getProgress() / 15.0f) * 1.5f + 0.5f;
+                FloatingWindowManager manager = FloatingWindowManager.getInstance();
+                if (manager != null) {
+                    manager.updateScale(newScale);
+                }
             }
         });
     }
@@ -325,8 +331,27 @@ public class MainActivity extends AppCompatActivity {
     private void updateFloatingWindowScale() {
         FloatingWindowManager manager = FloatingWindowManager.getInstance();
         if (manager != null) {
-            manager.updateScale(scale);
+            float currentScale = (sbScale.getProgress() / 15.0f) * 1.5f + 0.5f;
+            manager.updateScale(currentScale);
         }
+    }
+
+    /** 切换样式时，把 SeekBar 跳到该样式对应的缩放值 */
+    private void updateSeekBarToCurrentScale() {
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        float s;
+        // 如果 manager 正在巡航，显示巡航缩放（=灵动岛的值）
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager != null && manager.isActive() && manager.getCurrentMode() == FloatingWindowManager.MODE_CRUISE) {
+            s = sp.getFloat("scale_minimal", 0.5f); // 巡航复用灵动岛
+        } else {
+            String[] keys = {"scale_normal", "scale_minimal", "scale_full"};
+            float[] defaults = {1.0f, 0.5f, 0.9f};
+            int idx = Math.max(0, Math.min(styleMode, 2));
+            s = sp.getFloat(keys[idx], defaults[idx]);
+        }
+        sbScale.setProgress((int) (((s - 0.5f) / 1.5f) * 15));
+        tvScaleValue.setText(String.format("%.1fx", s));
     }
 
     private void updateStatusText() {

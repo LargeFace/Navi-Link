@@ -107,9 +107,11 @@ public class FloatingWindowManager {
     // 状态
     private int currentMode = MODE_CRUISE;
     private int styleMode = 0; // 0=normal, 1=minimal, 2=full
-    private float scale = 1.0f;
+    // 各模式独立缩放: [0]=常规, [1]=灵动岛/巡航(共用), [2]=全数据
+    private float[] scales = {1.0f, 0.5f, 0.9f};
     private int themeColor = 0xFF4FC3F7;
     private boolean isShowing = false;
+    private boolean hasActiveData = false; // 是否收到过实际导航/巡航广播数据
 
     // 拖拽相关
     private float initialTouchX;
@@ -196,10 +198,31 @@ public class FloatingWindowManager {
     private void loadPreferences() {
         SharedPreferences sp = context.getSharedPreferences("floating_config", Context.MODE_PRIVATE);
         styleMode = sp.getInt("style_mode", sp.getBoolean("is_minimal_style", false) ? 1 : 0);
-        scale = sp.getFloat("scale", 1.0f);
+        scales[0] = sp.getFloat("scale_normal", 1.0f);
+        scales[1] = sp.getFloat("scale_minimal", 0.5f);
+        scales[2] = sp.getFloat("scale_full", 0.9f);
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
         savedPosX = sp.getInt("window_pos_x", -1);
         savedPosY = sp.getInt("window_pos_y", -1);
+    }
+
+    /** 当前模式对应的缩放索引: 常规=0, 灵动岛/巡航=1, 全数据=2 */
+    private int getScaleIndex() {
+        if (currentMode == MODE_CRUISE) return 1; // 巡航复用灵动岛
+        if (styleMode == 0) return 0; // 常规
+        return styleMode; // 1=灵动岛, 2=全数据
+    }
+
+    public float getScale() {
+        return scales[getScaleIndex()];
+    }
+
+    private void saveScalePreferences() {
+        context.getSharedPreferences("floating_config", Context.MODE_PRIVATE).edit()
+                .putFloat("scale_normal", scales[0])
+                .putFloat("scale_minimal", scales[1])
+                .putFloat("scale_full", scales[2])
+                .apply();
     }
 
     // ======================== 窗口显示与隐藏 ========================
@@ -228,6 +251,10 @@ public class FloatingWindowManager {
 
     public boolean isShowing() {
         return isShowing;
+    }
+
+    public boolean isActive() {
+        return hasActiveData;
     }
 
     public void setVisible(boolean visible) {
@@ -292,6 +319,7 @@ public class FloatingWindowManager {
     }
 
     public void resetWatchdog() {
+        hasActiveData = true;
         handler.removeCallbacks(watchdogRunnable);
         handler.postDelayed(watchdogRunnable, WATCHDOG_TIMEOUT_MS);
         View view = floatingView;
@@ -351,6 +379,7 @@ public class FloatingWindowManager {
         }
 
         // 物理缩放内容：缩小或放大时直接调整文字尺寸/padding/margin，窗口用 WRAP_CONTENT 自然撑开
+        float scale = getScale();
         if (scale != 1.0f) {
             physicalScaleContent(inflated);
         }
@@ -580,7 +609,7 @@ public class FloatingWindowManager {
                 }
                 if (tvFullSpeed != null) tvFullSpeed.setText(String.valueOf(cachedSpeed));
                 if (tvFullSpeedLimit != null && cachedLimitedSpeed > 0)
-                    tvFullSpeedLimit.setText("限速 " + cachedLimitedSpeed);
+                    tvFullSpeedLimit.setText(String.valueOf(cachedLimitedSpeed));
                 if (tvFullCurRoadName != null && !cachedCurRoadName.isEmpty())
                     tvFullCurRoadName.setText(cachedCurRoadName);
                 if (tvDistanceNumFull != null) tvDistanceNumFull.setText(cachedDisNum);
@@ -594,8 +623,10 @@ public class FloatingWindowManager {
                     tvFullEndPoiName.setText(cachedEndPoiName);
                 if (tvFullCameraDist != null && cachedCameraDist > 0)
                     tvFullCameraDist.setText(cachedCameraDist + "米");
-                if (tvFullLightCount != null && cachedTotalLightNum > 0)
-                    tvFullLightCount.setText(cachedTotalLightNum + "个");
+                if (tvFullLightCount != null && cachedTotalLightNum > 0) {
+                    int remain = cachedRemainLightNum > 0 ? cachedRemainLightNum : cachedTotalLightNum;
+                    tvFullLightCount.setText(remain + "/" + cachedTotalLightNum);
+                }
                 if (tvFullDirection != null && cachedCarDirection > 0)
                     tvFullDirection.setText("朝向 " + getDirectionText(cachedCarDirection));
             } else if (styleMode == 1) {
@@ -680,7 +711,7 @@ public class FloatingWindowManager {
 
     /** 物理缩放：递归调整文字大小、padding、margin、固定宽高 */
     private void physicalScaleContent(View root) {
-        scaleViewRecursive(root, scale);
+        scaleViewRecursive(root, getScale());
     }
 
     private void scaleViewRecursive(View view, float factor) {
@@ -733,8 +764,10 @@ public class FloatingWindowManager {
     }
 
     public void updateScale(float newScale) {
-        if (Math.abs(this.scale - newScale) < 0.01f) return;
-        this.scale = newScale;
+        int idx = getScaleIndex();
+        if (Math.abs(scales[idx] - newScale) < 0.01f) return;
+        scales[idx] = newScale;
+        saveScalePreferences();
         if (isShowing) {
             refreshWindow();
         }
@@ -783,7 +816,7 @@ public class FloatingWindowManager {
             GradientDrawable bgDrawable = new GradientDrawable();
             bgDrawable.setShape(GradientDrawable.RECTANGLE);
             bgDrawable.setColor(bgColor);
-            int cornerPx = Math.round(dpToPx(12) * scale);
+            int cornerPx = Math.round(dpToPx(12) * getScale());
             bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
             layoutInfoBar.setBackground(bgDrawable);
         }
@@ -892,6 +925,7 @@ public class FloatingWindowManager {
                 try {
                     JSONObject lightObj = lightsArray.getJSONObject(i);
                     View lightView = inflater.inflate(R.layout.item_cruise_traffic_light, llTrafficLightsContainer, false);
+                    float scale = getScale();
                     if (scale != 1.0f) scaleViewRecursive(lightView, scale);
                     updateSingleLightView(lightView, lightObj);
                     llTrafficLightsContainer.addView(lightView);
@@ -988,7 +1022,7 @@ public class FloatingWindowManager {
         if (isShowing && floatingView != null && currentMode == MODE_NAVI) {
             if (styleMode == 2) {
                 updateFullNaviInfo(icon, disNum, disUnit, curSpeed, limitedSpeed, cameraDist,
-                        roadName, summaryStr, eta, endPoiName, totalLightNum, curRoadName, carDirection);
+                        roadName, summaryStr, eta, endPoiName, totalLightNum, remainLightNum, curRoadName, carDirection);
             } else if (styleMode == 1) {
                 updateMinimalNaviInfo(icon, disNum, disUnit, roadName, curSpeed);
             } else {
@@ -1026,16 +1060,16 @@ public class FloatingWindowManager {
     private void updateFullNaviInfo(int icon, String disNum, String disUnit, int curSpeed,
                                      int limitedSpeed, int cameraDist, String roadName,
                                      String summaryStr, String eta, String endPoiName,
-                                     int totalLightNum, String curRoadName, int carDirection) {
+                                     int totalLightNum, int remainLightNum, String curRoadName, int carDirection) {
         int turnIconRes = getTurnIconRes(icon);
         if (ivActionIconFull != null && turnIconRes != 0) ivActionIconFull.setImageResource(turnIconRes);
         if (tvFullSpeed != null) tvFullSpeed.setText(String.valueOf(curSpeed));
         if (tvFullSpeedLimit != null) {
             if (limitedSpeed > 0) {
-                tvFullSpeedLimit.setText("限速 " + limitedSpeed);
+                tvFullSpeedLimit.setText(String.valueOf(limitedSpeed));
 //                tvFullSpeedLimit.setVisibility(View.VISIBLE);
             } else {
-                tvFullSpeedLimit.setText("没有限速，可以起飞");
+                tvFullSpeedLimit.setText("0");
             }
         }
         if (tvFullCurRoadName != null) {
@@ -1057,7 +1091,8 @@ public class FloatingWindowManager {
         }
         if (tvFullLightCount != null) {
             if (totalLightNum > 0) {
-                tvFullLightCount.setText(totalLightNum + "个");
+                int remain = remainLightNum > 0 ? remainLightNum : totalLightNum;
+                tvFullLightCount.setText(remain + "/" + totalLightNum);
             } else {
                 tvFullLightCount.setText("--");
             }

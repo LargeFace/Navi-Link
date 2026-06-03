@@ -136,7 +136,7 @@ public class AmapNaviReceiver extends BroadcastReceiver {
         int cameraSpeed = intent.getIntExtra("CAMERA_SPEED", 0);
         String endPoiName = intent.getStringExtra("endPOIName");
         int totalLightNum = intent.getIntExtra("TRAFFIC_LIGHT_NUM", 0);
-        int remainLightNum = intent.getIntExtra("remainLightNum", 0);
+        int remainLightNum = intent.getIntExtra("routeRemainTrafficLightNum", 0);
         int carDirection = intent.getIntExtra("CAR_DIRECTION", -1);
 
         manager.updateNaviInfo(icon, disNum, disUnit, "进入", roadName,

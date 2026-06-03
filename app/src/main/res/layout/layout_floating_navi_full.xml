@@ -42,13 +42,15 @@
             android:textColor="#BBFFFFFF"
             android:textSize="12sp"/>
         <TextView
-
+            android:background="@drawable/camera_shape"
             android:layout_alignParentBottom="true"
             android:id="@+id/tv_full_speed_limit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="限速 120"
-            android:textColor="#88FFFFFF"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="120"
+            android:textColor="#1a1a1a"
             android:textSize="16sp" />
 
         <TextView
@@ -249,7 +251,7 @@
                  android:textColor="#ffffff"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
-                 android:text="190米"
+                 android:text="-"
                  android:textSize="16sp"/>
          </LinearLayout>
         </LinearLayout>
