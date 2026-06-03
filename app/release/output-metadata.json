@@ -13,7 +13,7 @@
       "attributes": [],
       "versionCode": 13,
       "versionName": "1.3",
-      "outputFile": "Navi-Link-v1.3-release-202606031100.apk"
+      "outputFile": "Navi-Link-v1.3-release-202606031433.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/Navi-Link-v1.3-release-202606031100.dm"
+        "baselineProfiles/1/Navi-Link-v1.3-release-202606031433.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/Navi-Link-v1.3-release-202606031100.dm"
+        "baselineProfiles/0/Navi-Link-v1.3-release-202606031433.dm"
       ]
     }
   ],

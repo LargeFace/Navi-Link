@@ -19,6 +19,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -112,6 +114,7 @@ public class FloatingWindowManager {
     private int themeColor = 0xFF4FC3F7;
     private boolean isShowing = false;
     private boolean hasActiveData = false; // 是否收到过实际导航/巡航广播数据
+    private boolean isOverspeedBlinking = false; // 超速闪烁状态
 
     // 拖拽相关
     private float initialTouchX;
@@ -1061,7 +1064,30 @@ public class FloatingWindowManager {
                                      int totalLightNum, int remainLightNum, String curRoadName, int carDirection) {
         int turnIconRes = getTurnIconRes(icon);
         if (ivActionIconFull != null && turnIconRes != 0) ivActionIconFull.setImageResource(turnIconRes);
-        if (tvFullSpeed != null) tvFullSpeed.setText(String.valueOf(curSpeed));
+        if (tvFullSpeed != null) {
+            tvFullSpeed.setText(String.valueOf(curSpeed));
+            // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁
+            boolean overspeed = limitedSpeed > 0 && curSpeed > limitedSpeed;
+            if (overspeed) {
+                tvFullSpeed.setTextColor(Color.RED);
+                if (!isOverspeedBlinking) {
+                    AlphaAnimation blink = new AlphaAnimation(1f, 0.3f);
+                    blink.setDuration(500);
+                    blink.setRepeatCount(Animation.INFINITE);
+                    blink.setRepeatMode(Animation.REVERSE);
+                    tvFullSpeed.startAnimation(blink);
+                    isOverspeedBlinking = true;
+                }
+            } else {
+                if (isOverspeedBlinking) {
+                    tvFullSpeed.clearAnimation();
+                    isOverspeedBlinking = false;
+                }
+                // 恢复正常主题色
+                int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+                tvFullSpeed.setTextColor(accentColor);
+            }
+        }
         if (tvFullSpeedLimit != null) {
             if (limitedSpeed > 0) {
                 tvFullSpeedLimit.setText(String.valueOf(limitedSpeed));
