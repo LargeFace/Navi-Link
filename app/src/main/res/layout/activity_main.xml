@@ -399,6 +399,153 @@
             app:layout_constraintTop_toBottomOf="@id/tv_theme_label" />
 
         <TextView
+            android:id="@+id/tv_bg_label"
+            android:textSize="16sp"
+            android:textColor="#FFAAAAAA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="背景模式"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ll_theme_colors" />
+
+        <LinearLayout
+            android:id="@+id/ll_bg_modes"
+            android:orientation="horizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_bg_label">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_bg_dark"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardBackgroundColor="#FF1E1E1E"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#FF444444"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/rb_bg_dark"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFFFF"
+                        android:clickable="false"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="深色"
+                        android:buttonTint="#FF4FC3F7" />
+
+                    <TextView
+                        android:textSize="11sp"
+                        android:textColor="#FF888888"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:text="原有深色背景" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_bg_semi"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardBackgroundColor="#FF1E1E1E"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#FF444444"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/rb_bg_semi"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFFFF"
+                        android:clickable="false"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="半透明"
+                        android:buttonTint="#FF4FC3F7" />
+
+                    <TextView
+                        android:textSize="11sp"
+                        android:textColor="#FF888888"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:text="50%透明背景" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_bg_transparent"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:cardBackgroundColor="#FF1E1E1E"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#FF444444"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/rb_bg_transparent"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFFFF"
+                        android:clickable="false"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="全透明"
+                        android:buttonTint="#FF4FC3F7" />
+
+                    <TextView
+                        android:textSize="11sp"
+                        android:textColor="#FF888888"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:text="文字跟随昼夜" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <TextView
             android:id="@+id/tv_status"
             android:textSize="14sp"
             android:textColor="#FF888888"
@@ -407,7 +554,7 @@
             android:layout_marginTop="24dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ll_theme_colors" />
+            app:layout_constraintTop_toBottomOf="@id/ll_bg_modes" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

@@ -68,6 +68,7 @@ public class FloatingWindowManager {
     private TextView tvSummary;
     private TextView tvEta;
     private View llTrafficLightGroup;
+    private View vDivider;
     private ImageView ivLightIcon;
     private ImageView ivLightArrow;
     private TextView tvLightTime;
@@ -89,6 +90,7 @@ public class FloatingWindowManager {
     private TextView tvFullSpeed;
     private TextView tvFullSpeedLimit;
     private TextView tvFullCurRoadName;
+    private TextView tvFullSpeedUnit;
     private TextView tvDistanceNumFull;
     private TextView tvDistanceUnitFull;
     private TextView tvRoadNameMinFull;
@@ -116,6 +118,20 @@ public class FloatingWindowManager {
     private boolean isShowing = false;
     private boolean hasActiveData = false; // 是否收到过实际导航/巡航广播数据
     private boolean isOverspeedBlinking = false; // 超速闪烁状态
+
+    // 昼夜模式 + 透明背景
+    private boolean isNightMode = true; // 默认夜间（深色文字）
+    private int backgroundMode = 0; // 0=深色, 1=半透明, 2=全透明
+
+    // 透明主题文字颜色常量
+    // 亮色背景（高德白天）用深色文字
+    private static final int TEXT_PRIMARY_LIGHT = 0xFF1a1a1a;
+    private static final int TEXT_SECONDARY_LIGHT = 0xFF333333;
+    private static final int TEXT_HINT_LIGHT = 0xFF999999;
+    // 暗色背景（高德夜间）用浅色文字
+    private static final int TEXT_PRIMARY_DARK = 0xFFFFFFFF;
+    private static final int TEXT_SECONDARY_DARK = 0xBBFFFFFF;
+    private static final int TEXT_HINT_DARK = 0x88FFFFFF;
 
     // 拖拽相关
     private float initialTouchX;
@@ -209,6 +225,8 @@ public class FloatingWindowManager {
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
         savedPosX = sp.getInt("window_pos_x", -1);
         savedPosY = sp.getInt("window_pos_y", -1);
+        isNightMode = sp.getBoolean("is_night_mode", true); // 默认夜间
+        backgroundMode = sp.getInt("background_mode", 0); // 默认深色背景
     }
 
     /** 当前模式对应的缩放索引: 常规=0, 灵动岛/巡航=1, 全数据=2 */
@@ -491,6 +509,7 @@ public class FloatingWindowManager {
         tvSummary = null;
         tvEta = null;
         llTrafficLightGroup = null;
+        vDivider = null;
         ivLightIcon = null;
         ivLightArrow = null;
         tvLightTime = null;
@@ -508,6 +527,7 @@ public class FloatingWindowManager {
         tvFullSpeed = null;
         tvFullSpeedLimit = null;
         tvFullCurRoadName = null;
+        tvFullSpeedUnit = null;
         tvDistanceNumFull = null;
         tvDistanceUnitFull = null;
         tvRoadNameMinFull = null;
@@ -544,6 +564,7 @@ public class FloatingWindowManager {
         tvSummary = floatingView.findViewById(R.id.tv_summary);
         tvEta = floatingView.findViewById(R.id.tv_eta);
         layoutInfoBar = floatingView.findViewById(R.id.layout_info_bar);
+        vDivider = floatingView.findViewById(R.id.v_divider);
 
         View lightGroup = floatingView.findViewById(R.id.ll_traffic_light_group);
         llTrafficLightGroup = lightGroup;
@@ -575,6 +596,7 @@ public class FloatingWindowManager {
         tvFullSpeed = floatingView.findViewById(R.id.tv_full_speed);
         tvFullSpeedLimit = floatingView.findViewById(R.id.tv_full_speed_limit);
         tvFullCurRoadName = floatingView.findViewById(R.id.tv_full_cur_road_name);
+        tvFullSpeedUnit = floatingView.findViewById(R.id.tv_full_speed_unit);
         tvDistanceNumFull = floatingView.findViewById(R.id.tv_distance_num_full);
         tvDistanceUnitFull = floatingView.findViewById(R.id.tv_distance_unit_full);
         tvRoadNameMinFull = floatingView.findViewById(R.id.tv_road_name_min);
@@ -838,37 +860,213 @@ public class FloatingWindowManager {
         if (tvFullLabelEnd != null) tvFullLabelEnd.setTextColor(accentColor);
         if (tvFullDirection != null) tvFullDirection.setTextColor(accentColor);
 
+        // 全数据卡片中间区域跟随主题色
+        if (cvFullMiddle != null) cvFullMiddle.setCardBackgroundColor(themeColor);
 
         if (layoutInfoBar != null) {
-            int bgColor;
-            if (isDark) {
-                bgColor = 0xFF2A2A2A;
-            } else {
-                int r = (themeColor >> 16) & 0xFF;
-                int g = (themeColor >> 8) & 0xFF;
-                int b = themeColor & 0xFF;
-                bgColor = 0xFF000000
-                        | ((int) (r * 0.15f) << 16)
-                        | ((int) (g * 0.15f) << 8)
-                        | (int) (b * 0.15f);
-            }
-            GradientDrawable bgDrawable = new GradientDrawable();
-            bgDrawable.setShape(GradientDrawable.RECTANGLE);
-            bgDrawable.setColor(bgColor);
             int cornerPx = Math.round(dpToPx(12) * getScale());
-            bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
-            layoutInfoBar.setBackground(bgDrawable);
+            if (backgroundMode == 2) {
+                // 全透明 - 无背景
+                layoutInfoBar.setBackground(null);
+            } else if (backgroundMode == 1) {
+                // 半透明 - 跟随主题色
+                GradientDrawable bgDrawable = new GradientDrawable();
+                bgDrawable.setShape(GradientDrawable.RECTANGLE);
+                int semiColor = (themeColor & 0x00FFFFFF) | 0x80000000;
+                bgDrawable.setColor(semiColor);
+                bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
+                layoutInfoBar.setBackground(bgDrawable);
+            } else {
+                // 深色 - 原有逻辑
+                int bgColor;
+                if (isDark) {
+                    bgColor = 0xFF2A2A2A;
+                } else {
+                    int r = (themeColor >> 16) & 0xFF;
+                    int g = (themeColor >> 8) & 0xFF;
+                    int b = themeColor & 0xFF;
+                    bgColor = 0xFF000000
+                            | ((int) (r * 0.15f) << 16)
+                            | ((int) (g * 0.15f) << 8)
+                            | (int) (b * 0.15f);
+                }
+                GradientDrawable bgDrawable = new GradientDrawable();
+                bgDrawable.setShape(GradientDrawable.RECTANGLE);
+                bgDrawable.setColor(bgColor);
+                bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
+                layoutInfoBar.setBackground(bgDrawable);
+            }
         }
 
         View target = floatingView.findViewById(R.id.root_layout);
         if (target == null) target = scaleTarget;
         if (target == null) target = floatingView;
 
-        Drawable background = target.getBackground();
-        if (background != null) {
-            background.mutate().setColorFilter(
-                    new PorterDuffColorFilter((themeColor & 0x00FFFFFF) | 0x1E000000, PorterDuff.Mode.SRC_OVER));
+        // 透明背景模式处理
+        // 根据样式确定圆角: 灵动岛/巡航=40dp, 常规/全数据=12dp
+        int cornerDp = (styleMode == 1 || currentMode == MODE_CRUISE) ? 40 : 12;
+        int cornerPx = Math.round(dpToPx(cornerDp) * getScale());
+
+        if (backgroundMode == 2) {
+            // 全透明
+            target.setBackground(null);
+        } else if (backgroundMode == 1) {
+            // 半透明 - 跟随主题色
+            GradientDrawable bgDrawable = new GradientDrawable();
+            bgDrawable.setShape(GradientDrawable.RECTANGLE);
+            int semiColor = (themeColor & 0x00FFFFFF) | 0x80000000;
+            bgDrawable.setColor(semiColor);
+            bgDrawable.setCornerRadius(cornerPx);
+            target.setBackground(bgDrawable);
+        } else {
+            // 深色背景 - 重建背景确保不残留透明度
+            GradientDrawable bgDrawable = new GradientDrawable();
+            bgDrawable.setShape(GradientDrawable.RECTANGLE);
+            int bgColor;
+            if (isDarkThemeColor(themeColor)) {
+                bgColor = 0xFF1E1E1E;
+            } else {
+                int r = (themeColor >> 16) & 0xFF;
+                int g = (themeColor >> 8) & 0xFF;
+                int b = themeColor & 0xFF;
+                bgColor = 0xFF000000
+                        | ((int) (r * 0.12f) << 16)
+                        | ((int) (g * 0.12f) << 8)
+                        | (int) (b * 0.12f);
+            }
+            bgDrawable.setColor(bgColor);
+            bgDrawable.setCornerRadius(cornerPx);
+            target.setBackground(bgDrawable);
         }
+
+        // 仅全透明模式下应用昼夜文字颜色，其他模式恢复默认
+        if (backgroundMode == 2) {
+            applyDayNightTextColors();
+        } else {
+            resetToDefaultTextColors();
+        }
+    }
+
+    /**
+     * 应用昼夜模式文字颜色（仅透明模式下生效）
+     */
+    private void applyDayNightTextColors() {
+        int textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
+        int textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
+        int textHint = isNightMode ? TEXT_HINT_DARK : TEXT_HINT_LIGHT;
+
+        // 巡航
+        if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(textSecondary);
+
+        // 常规导航
+        if (tvDistanceNum != null) tvDistanceNum.setTextColor(textPrimary);
+        if (tvDistanceUnit != null) tvDistanceUnit.setTextColor(textPrimary);
+        if (tvAction != null) tvAction.setTextColor(textSecondary);
+        if (tvRoadName != null) tvRoadName.setTextColor(textPrimary);
+        if (tvSummary != null) tvSummary.setTextColor(textSecondary);
+        if (tvEta != null) tvEta.setTextColor(textSecondary);
+        // 箭头图标跟随文字颜色
+        if (ivTurnIcon != null) ivTurnIcon.setColorFilter(textPrimary);
+        // 分隔线跟随主文字颜色
+        if (vDivider != null) vDivider.setBackgroundColor(textPrimary);
+
+        // 灵动岛
+        if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(textPrimary);
+        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(textSecondary);
+        if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(textSecondary);
+        if (ivActionIconMin !=null) ivActionIconMin.setColorFilter(textPrimary);
+        if (tvMinSpeedUnit !=null)  tvMinSpeedUnit.setTextColor(textPrimary);
+        // 全数据
+        if (tvFullCurRoadName != null) tvFullCurRoadName.setTextColor(textPrimary);
+        if (tvDistanceNumFull != null) tvDistanceNumFull.setTextColor(textPrimary);
+        if (tvDistanceUnitFull != null) tvDistanceUnitFull.setTextColor(textSecondary);
+        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(textSecondary);
+        if (ivActionIconFull != null) ivActionIconFull.setColorFilter(textPrimary);
+        if (tvSummaryFull != null) tvSummaryFull.setTextColor(textSecondary);
+        if (tvEtaFull != null) tvEtaFull.setTextColor(textSecondary);
+        if (tvFullEndPoiName != null) tvFullEndPoiName.setTextColor(textPrimary);
+        if (tvFullCameraDist != null) tvFullCameraDist.setTextColor(textPrimary);
+        if (tvFullLightCount != null) tvFullLightCount.setTextColor(textPrimary);
+//        if (tvFullSpeedLimit != null) tvFullSpeedLimit.setTextColor(textSecondary);
+        if (tvFullSpeedUnit !=null)  tvFullSpeedUnit.setTextColor(textPrimary);
+    }
+
+    /**
+     * 恢复默认文字颜色（深色/半透明模式下使用白色系）
+     */
+    private void resetToDefaultTextColors() {
+        // 巡航
+        if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(TEXT_SECONDARY_DARK);
+
+        // 常规导航
+        if (tvDistanceNum != null) tvDistanceNum.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvDistanceUnit != null) tvDistanceUnit.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvAction != null) tvAction.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvRoadName != null) tvRoadName.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvSummary != null) tvSummary.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvEta != null) tvEta.setTextColor(TEXT_SECONDARY_DARK);
+        if (ivTurnIcon != null) ivTurnIcon.clearColorFilter();
+        if (vDivider != null) vDivider.setBackgroundColor(TEXT_PRIMARY_DARK);
+
+        // 灵动岛
+        if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(TEXT_SECONDARY_DARK);
+        if (ivActionIconMin != null) ivActionIconMin.clearColorFilter();
+        if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
+
+        // 全数据
+        if (tvFullCurRoadName != null) tvFullCurRoadName.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvDistanceNumFull != null) tvDistanceNumFull.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvDistanceUnitFull != null) tvDistanceUnitFull.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(TEXT_SECONDARY_DARK);
+        if (ivActionIconFull != null) ivActionIconFull.clearColorFilter();
+        if (tvSummaryFull != null) tvSummaryFull.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvEtaFull != null) tvEtaFull.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvFullEndPoiName != null) tvFullEndPoiName.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvFullCameraDist != null) tvFullCameraDist.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvFullLightCount != null) tvFullLightCount.setTextColor(TEXT_PRIMARY_DARK);
+//        if (tvFullSpeedLimit != null) tvFullSpeedLimit.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvFullSpeedUnit != null) tvFullSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
+    }
+
+    /**
+     * 高德昼夜模式变化回调
+     */
+    public void onDayNightChanged(boolean isNight) {
+        if (this.isNightMode == isNight) return; // 无变化不刷新
+        this.isNightMode = isNight;
+        saveDayNightState();
+        if (backgroundMode > 0) {
+            applyThemeColor(); // 重新应用颜色
+        }
+    }
+
+    /**
+     * 设置背景模式: 0=深色, 1=半透明, 2=全透明
+     */
+    public void setBackgroundMode(int mode) {
+        this.backgroundMode = mode;
+        saveBackgroundMode();
+        applyThemeColor();
+    }
+
+    public int getBackgroundMode() {
+        return backgroundMode;
+    }
+
+    public boolean isNightMode() {
+        return isNightMode;
+    }
+
+    private void saveDayNightState() {
+        context.getSharedPreferences("floating_config", Context.MODE_PRIVATE)
+                .edit().putBoolean("is_night_mode", isNightMode).apply();
+    }
+
+    private void saveBackgroundMode() {
+        context.getSharedPreferences("floating_config", Context.MODE_PRIVATE)
+                .edit().putInt("background_mode", backgroundMode).apply();
     }
 
     private boolean isDarkThemeColor(int color) {
@@ -951,7 +1149,7 @@ public class FloatingWindowManager {
 
         if (count == 0) {
             llTrafficLightsContainer.setVisibility(View.GONE);
-            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
+//            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
             if (childCount > 0) llTrafficLightsContainer.removeAllViews();
             remeasureWindow();
             return;
@@ -991,7 +1189,7 @@ public class FloatingWindowManager {
         }
         if (allGone) {
             llTrafficLightsContainer.setVisibility(View.GONE);
-            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
+//            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
         }
         remeasureWindow();
     }

@@ -49,6 +49,16 @@ public class AmapNaviReceiver extends BroadcastReceiver {
             return;
         }
 
+        // 昼夜模式切换广播
+        if (keyType == 10019) {
+            int extraState = intent.getIntExtra("EXTRA_STATE", -1);
+            if (extraState == 37 || extraState == 38) {
+                boolean isNight = (extraState == 38);
+                manager.onDayNightChanged(isNight);
+            }
+            return;
+        }
+
         if (keyType == 10001) {
             // 导航或巡航信息
             manager.resetWatchdog();

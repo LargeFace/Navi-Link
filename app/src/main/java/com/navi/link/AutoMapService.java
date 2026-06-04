@@ -55,7 +55,25 @@ public class AutoMapService extends Service {
             registerReceiver(amapNaviReceiver, filter);
         }
 
+        // App启动时主动询问高德当前昼夜模式
+        requestAmapDayNightState();
+
         return START_STICKY;
+    }
+
+    /**
+     * 向高德地图请求当前运行状态（昼夜模式）
+     */
+    private void requestAmapDayNightState() {
+        try {
+            Intent intent = new Intent();
+            intent.setAction("AUTONAVI_STANDARD_BROADCAST_RECV");
+            intent.putExtra("KEY_TYPE", 13030);
+            intent.putExtra("SOURCE_APP", getPackageName());
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

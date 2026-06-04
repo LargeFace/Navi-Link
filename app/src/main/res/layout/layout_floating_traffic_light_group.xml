@@ -6,12 +6,13 @@
     android:background="@drawable/bg_traffic_light_capsule"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="4dp"
+    android:paddingStart="3dp"
     android:paddingEnd="10dp">
 
     <FrameLayout
-        android:layout_width="40dp"
-        android:layout_height="40dp">
+
+        android:layout_width="45dp"
+        android:layout_height="45dp">
 
         <ImageView
             android:id="@+id/iv_light_icon"

@@ -54,12 +54,18 @@ public class MainActivity extends AppCompatActivity {
     private MaterialCardView cardFull;
     private MaterialCardView cardServiceOnly;
     private MaterialCardView cardNormalStart;
+    private MaterialCardView cardBgDark;
+    private MaterialCardView cardBgSemi;
+    private MaterialCardView cardBgTransparent;
     private LinearLayout llThemeColors;
     private RadioButton rbMinimal;
     private RadioButton rbNormal;
     private RadioButton rbFull;
     private RadioButton rbServiceOnly;
     private RadioButton rbNormalStart;
+    private RadioButton rbBgDark;
+    private RadioButton rbBgSemi;
+    private RadioButton rbBgTransparent;
     private TextView btnGoHome;
     private CardView cvGoHome;
     private SeekBar sbScale;
@@ -70,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isMinimalStyle = false;
     private int styleMode = 0;
     private boolean isServiceOnlyMode = false;
+    private int backgroundMode = 0; // 0=深色, 1=半透明, 2=全透明
 
     private int themeColor = 0xFF4FC3F7;
 
@@ -99,11 +106,17 @@ public class MainActivity extends AppCompatActivity {
         cardFull = findViewById(R.id.card_full);
         cardServiceOnly = findViewById(R.id.card_service_only);
         cardNormalStart = findViewById(R.id.card_normal_start);
+        cardBgDark = findViewById(R.id.card_bg_dark);
+        cardBgSemi = findViewById(R.id.card_bg_semi);
+        cardBgTransparent = findViewById(R.id.card_bg_transparent);
         rbNormal = findViewById(R.id.rb_normal);
         rbMinimal = findViewById(R.id.rb_minimal);
         rbFull = findViewById(R.id.rb_full);
         rbServiceOnly = findViewById(R.id.rb_service_only);
         rbNormalStart = findViewById(R.id.rb_normal_start);
+        rbBgDark = findViewById(R.id.rb_bg_dark);
+        rbBgSemi = findViewById(R.id.rb_bg_semi);
+        rbBgTransparent = findViewById(R.id.rb_bg_transparent);
         btnGoHome = findViewById(R.id.btn_go_home);
         cvGoHome = findViewById(R.id.cv_go_home);
         sbScale = findViewById(R.id.sb_scale);
@@ -127,9 +140,11 @@ public class MainActivity extends AppCompatActivity {
         styleMode = sp.getInt(KEY_STYLE_MODE, isMinimalStyle ? 1 : 0);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
         isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
+        backgroundMode = sp.getInt("background_mode", 0);
 
         updateStartupSelection();
         updateStyleSelection();
+        updateBackgroundModeSelection();
         updateSeekBarToCurrentScale();
 
         sbScale.setProgressTintList(ColorStateList.valueOf(getAccentColor()));
@@ -180,12 +195,34 @@ public class MainActivity extends AppCompatActivity {
         cardFull.setStrokeColor(styleMode == 2 ? accentColor : Color.parseColor("#444444"));
     }
 
+    private void selectBackgroundMode(int mode) {
+        if (backgroundMode == mode) return;
+        backgroundMode = mode;
+        updateBackgroundModeSelection();
+        savePreferences();
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager != null) {
+            manager.setBackgroundMode(mode);
+        }
+    }
+
+    private void updateBackgroundModeSelection() {
+        rbBgDark.setChecked(backgroundMode == 0);
+        rbBgSemi.setChecked(backgroundMode == 1);
+        rbBgTransparent.setChecked(backgroundMode == 2);
+        int accentColor = getAccentColor();
+        cardBgDark.setStrokeColor(backgroundMode == 0 ? accentColor : Color.parseColor("#444444"));
+        cardBgSemi.setStrokeColor(backgroundMode == 1 ? accentColor : Color.parseColor("#444444"));
+        cardBgTransparent.setStrokeColor(backgroundMode == 2 ? accentColor : Color.parseColor("#444444"));
+    }
+
     private void savePreferences() {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(KEY_IS_MINIMAL, isMinimalStyle)
                 .putInt(KEY_STYLE_MODE, styleMode)
                 .putInt(KEY_THEME_COLOR, themeColor)
                 .putBoolean(KEY_IS_SERVICE_ONLY, isServiceOnlyMode)
+                .putInt("background_mode", backgroundMode)
                 .apply();
     }
 
@@ -268,6 +305,9 @@ public class MainActivity extends AppCompatActivity {
         cardNormal.setOnClickListener(v -> selectStyle(0));
         cardMinimal.setOnClickListener(v -> selectStyle(1));
         cardFull.setOnClickListener(v -> selectStyle(2));
+        cardBgDark.setOnClickListener(v -> selectBackgroundMode(0));
+        cardBgSemi.setOnClickListener(v -> selectBackgroundMode(1));
+        cardBgTransparent.setOnClickListener(v -> selectBackgroundMode(2));
         btnGoHome.setOnClickListener(v -> moveTaskToBack(true));
 
         sbScale.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
