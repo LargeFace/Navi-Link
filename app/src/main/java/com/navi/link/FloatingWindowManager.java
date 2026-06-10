@@ -1174,6 +1174,8 @@ public class FloatingWindowManager {
         if (isShowing && floatingView != null && currentMode == MODE_CRUISE) {
             if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(speed));
             if (tvCruiseRoadName != null && roadName != null) tvCruiseRoadName.setText(roadName);
+            // 速度/路名文字变化后重新测量窗口，避免内容变宽时被旧宽度截断
+            remeasureWindow();
         }
     }
 
