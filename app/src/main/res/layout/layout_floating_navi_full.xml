@@ -20,57 +20,51 @@
             android:layout_height="wrap_content">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="85dp">
-        <TextView
-            android:id="@+id/tv_full_speed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:text="0"
-            android:textColor="#FF0099FF"
-            android:textSize="40sp"
-            android:textStyle="bold" />
-        <TextView
-            android:id="@+id/tv_full_speed_unit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_toRightOf="@id/tv_full_speed"
-            android:layout_alignBottom="@id/tv_full_speed"
-            android:layout_marginBottom="10dp"
-            android:text="km/h"
-            android:textColor="#BBFFFFFF"
-            android:textSize="12sp"/>
-        <TextView
-            android:background="@drawable/camera_shape"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/tv_full_speed_limit"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:text="120"
-            android:textColor="#1a1a1a"
-            android:textSize="16sp" />
+        android:layout_height="70dp">
+        <RelativeLayout
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_speed"
+            android:layout_width="50dp"
+            android:layout_height="50dp">
+            <TextView
+                android:textColor="#FFFFFF"
+                android:layout_centerInParent="true"
+                android:id="@+id/tv_full_speed"
+                android:text="123"
+                android:textStyle="bold"
+                android:textSize="24sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
-        <TextView
-            android:layout_alignParentBottom="true"
-            android:id="@+id/tv_full_direction"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/tv_full_speed_limit"
-            android:layout_marginStart="12dp"
-            android:text="朝向 南"
-            android:textColor="#88FFFFFF"
-            android:textSize="16sp" />
-
+            <TextView
+                android:id="@+id/tv_full_speed_unit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="3dp"
+                android:text="km/h"
+                android:textColor="#BBFFFFFF"
+                android:textSize="10sp"/>
+        </RelativeLayout>
         <include
             android:visibility="gone"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             layout="@layout/layout_floating_traffic_light_group"/>
+        <TextView
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/camera_shape"
+            android:layout_centerVertical="true"
+            android:id="@+id/tv_full_speed_limit"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="123"
+            android:textColor="#1a1a1a"
+            android:textSize="24sp" />
     </RelativeLayout>
 <LinearLayout
     android:layout_marginTop="15dp"
@@ -83,11 +77,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#FF0099FF"
-        android:text="当前位于："/>
+        android:text="当前："/>
 
     <TextView
         android:id="@+id/tv_full_cur_road_name"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:ellipsize="end"
@@ -96,6 +91,15 @@
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:layout_alignParentBottom="true"
+        android:id="@+id/tv_full_direction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="朝向 南"
+        android:textColor="#88FFFFFF"
+        android:textSize="16sp" />
 </LinearLayout>
 
 
@@ -194,7 +198,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#FF0099FF"
-                android:text="终点位置："/>
+                android:text="终点："/>
 
             <TextView
                 android:id="@+id/tv_full_end_poi_name"
@@ -227,7 +231,7 @@
                  android:textColor="#ffffff"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
-                 android:text="190米"
+                 android:text="--"
                  android:textSize="18sp"/>
             <LinearLayout
                 android:layout_width="0dp"
@@ -252,7 +256,7 @@
                  android:textColor="#ffffff"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
-                 android:text="-"
+                 android:text="--"
                  android:textStyle="bold"
                  android:textSize="18sp"/>
          </LinearLayout>

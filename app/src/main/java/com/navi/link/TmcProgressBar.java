@@ -1,10 +1,13 @@
 package com.navi.link;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -34,10 +37,10 @@ public class TmcProgressBar extends View {
 
     private final Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Path markerPath = new Path();
 
     private float barHeight;
     private float markerSize;
+    private Bitmap markerIcon;
 
     public TmcProgressBar(Context context) {
         super(context);
@@ -58,14 +61,15 @@ public class TmcProgressBar extends View {
         markerPaint.setColor(Color.WHITE);
         markerPaint.setStyle(Paint.Style.FILL);
         barHeight = dpToPx(4);
-        markerSize = dpToPx(5);
+        markerSize = dpToPx(10);
+        markerIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.navigation_icon);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        // 三角在上 + 色条在下，不需要底部留白
-        int height = (int) (markerSize + barHeight + dpToPx(1));
+        // 图标与进度条垂直居中重叠，总高度取两者较大值
+        int height = (int) Math.max(markerSize, barHeight);
         setMeasuredDimension(width, height);
     }
 
@@ -73,7 +77,8 @@ public class TmcProgressBar extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int width = getWidth();
-        float centerY = markerSize + dpToPx(1);
+        int height = getHeight();
+        float centerY = height / 2f;
         float barTop = centerY - barHeight / 2;
         float barBottom = centerY + barHeight / 2;
 
@@ -107,31 +112,22 @@ public class TmcProgressBar extends View {
 
         canvas.restore();
 
-        // 绘制当前位置三角标记（朝下）
+        // 绘制当前位置图标标记
         if (finishDistance >= 0 && finishDistance <= totalDistance) {
             float markerX = (finishDistance / (float) totalDistance) * width;
-            // 钳制在 [markerSize*0.6, width-markerSize*0.6] 防止三角被裁切
-            float margin = markerSize * 0.6f;
+            // 钳制在 [margin, width-margin] 防止图标被裁切
+            float margin = markerSize / 2;
             markerX = Math.max(margin, Math.min(markerX, width - margin));
 
-            markerPath.reset();
-            markerPath.moveTo(markerX - markerSize * 0.6f, 0);
-            markerPath.lineTo(markerX + markerSize * 0.6f, 0);
-            markerPath.lineTo(markerX, markerSize);
-            markerPath.close();
-
-            // 阴影
-            markerPaint.setColor(0x66000000);
-            canvas.drawPath(markerPath, markerPaint);
-
-            // 白色三角
-            markerPaint.setColor(Color.WHITE);
-            Path whiteMarker = new Path();
-            whiteMarker.moveTo(markerX - markerSize * 0.5f, 0);
-            whiteMarker.lineTo(markerX + markerSize * 0.5f, 0);
-            whiteMarker.lineTo(markerX, markerSize * 0.85f);
-            whiteMarker.close();
-            canvas.drawPath(whiteMarker, markerPaint);
+            if (markerIcon != null && !markerIcon.isRecycled()) {
+                float iconSize = markerSize;
+                float left = markerX - iconSize / 2;
+                float top = centerY - iconSize / 2;
+                markerPaint.setColor(0xFFFFFFFF);
+                canvas.drawBitmap(markerIcon, null,
+                        new RectF(left, top, left + iconSize, top + iconSize),
+                        markerPaint);
+            }
         }
     }
 

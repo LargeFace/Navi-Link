@@ -73,6 +73,7 @@ public class FloatingWindowManager {
     private ImageView ivLightArrow;
     private TextView tvLightTime;
     private View layoutInfoBar;
+    private TextView tvExitInfo;
 
     // 灵动岛 UI
     private ImageView ivActionIconMin;
@@ -174,6 +175,8 @@ public class FloatingWindowManager {
     private String cachedCurRoadName = "";
     private int cachedCarDirection = 0;
     private String cachedTmcJson = null;
+    private String cachedExitName = "";
+    private String cachedExitDirection = "";
 
     // Runnable
     private final Runnable naviSwitchRunnable = this::doNaviSwitch;
@@ -541,6 +544,7 @@ public class FloatingWindowManager {
         ivLightArrow = null;
         tvLightTime = null;
         layoutInfoBar = null;
+        tvExitInfo = null;
         ivActionIconMin = null;
         tvMinSpeed = null;
         tvMinSpeedUnit = null;
@@ -591,6 +595,7 @@ public class FloatingWindowManager {
         tvSummary = floatingView.findViewById(R.id.tv_summary);
         tvEta = floatingView.findViewById(R.id.tv_eta);
         layoutInfoBar = floatingView.findViewById(R.id.layout_info_bar);
+        tvExitInfo = floatingView.findViewById(R.id.tv_exit_info);
         vDivider = floatingView.findViewById(R.id.v_divider);
 
         View lightGroup = floatingView.findViewById(R.id.ll_traffic_light_group);
@@ -708,6 +713,16 @@ public class FloatingWindowManager {
                 if (tmcProgressBar != null && cachedTmcJson != null) tmcProgressBar.updateTmcData(cachedTmcJson);
                 if (tvSummary != null) tvSummary.setText(cachedSummaryStr);
                 if (tvEta != null) tvEta.setText(cachedEta);
+                // 恢复出口信息
+                if (tvExitInfo != null) {
+                    if (!cachedExitName.isEmpty()) {
+                        String exitText = cachedExitName + (cachedExitDirection.isEmpty() ? "" : "  " + cachedExitDirection);
+                        tvExitInfo.setText(exitText);
+                        tvExitInfo.setVisibility(View.VISIBLE);
+                    } else {
+                        tvExitInfo.setVisibility(View.GONE);
+                    }
+                }
             }
             // 恢复红绿灯胶囊
             if (cachedLightCountdown > 0) {
@@ -1006,6 +1021,8 @@ public class FloatingWindowManager {
         if (ivTurnIcon != null) ivTurnIcon.setColorFilter(textPrimary);
         // 分隔线跟随主文字颜色
         if (vDivider != null) vDivider.setBackgroundColor(textPrimary);
+        // 出口信息
+        if (tvExitInfo != null) tvExitInfo.setTextColor(textSecondary);
 
         // 灵动岛
         if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(textPrimary);
@@ -1044,6 +1061,7 @@ public class FloatingWindowManager {
         if (tvEta != null) tvEta.setTextColor(TEXT_SECONDARY_DARK);
         if (ivTurnIcon != null) ivTurnIcon.clearColorFilter();
         if (vDivider != null) vDivider.setBackgroundColor(TEXT_PRIMARY_DARK);
+        if (tvExitInfo != null) tvExitInfo.setTextColor(TEXT_SECONDARY_DARK);
 
         // 灵动岛
         if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(TEXT_PRIMARY_DARK);
@@ -1320,6 +1338,26 @@ public class FloatingWindowManager {
         if (tvEta != null) tvEta.setText(formatEta(eta));
     }
 
+    /**
+     * 更新出口信息（常规模式专用）
+     * @param exitName     出口名称，如 "出口37"，null 或空表示无出口信息
+     * @param exitDirection 出口方向，如 "平山 塘厦"
+     */
+    public void updateExitInfo(String exitName, String exitDirection) {
+        cachedExitName = exitName != null ? exitName.trim() : "";
+        cachedExitDirection = exitDirection != null ? exitDirection.trim() : "";
+        if (!isShowing || floatingView == null || currentMode != MODE_NAVI || styleMode != 0) return;
+        if (tvExitInfo == null) return;
+        if (cachedExitName.isEmpty()) {
+            tvExitInfo.setVisibility(View.GONE);
+        } else {
+            String exitText = cachedExitName
+                    + (cachedExitDirection.isEmpty() ? "" : "  " + cachedExitDirection);
+            tvExitInfo.setText(exitText);
+            tvExitInfo.setVisibility(View.VISIBLE);
+        }
+    }
+
     private boolean disNumIsNow(String disNum){
         return "现在".equals(disNum);
     }
@@ -1479,17 +1517,26 @@ public class FloatingWindowManager {
      */
     private int getTurnIconRes(int icon) {
         switch (icon) {
-            case 2: return R.mipmap.ic_navi_left;
-            case 3: return R.mipmap.ic_navi_right;
-            case 4: return R.mipmap.ic_navi_left_d;
-            case 5: return R.mipmap.ic_navi_right_d;
-            case 8: return R.mipmap.ic_navi_u_turn;
-            case 9: return R.mipmap.ic_navi_straight;
-            case 10: return R.mipmap.ic_navi_mid;
-            case 11: return R.mipmap.ic_navi_in_dao;
-            case 12: return R.mipmap.ic_navi_en_dao;
-            case 15: return R.mipmap.ic_navi_end;
-            default: return R.mipmap.ic_navi_straight;
+            case 2: return R.mipmap.sou2_night_a530;
+            case 3: return R.mipmap.sou3_night_a530;
+            case 4: return R.mipmap.sou4_night_a530;
+            case 5: return R.mipmap.sou5_night_a530;
+            case 6: return R.mipmap.sou6_night_a530;
+            case 7: return R.mipmap.sou7_night_a530;
+            case 8: return R.mipmap.sou8_night_a530;
+            case 9: return R.mipmap.sou9_night_a530;
+            case 10: return R.mipmap.sou10_night_a530;
+            case 11: return R.mipmap.sou11_night_a530;
+            case 12: return R.mipmap.sou12_night_a530;
+            case 13: return R.mipmap.sou13_night_a530;
+            case 14: return R.mipmap.sou14_night_a530;
+            case 15: return R.mipmap.sou15_night_a530;
+            case 16: return R.mipmap.sou16_night_a530;
+            case 17: return R.mipmap.sou17_night_a530;
+            case 18: return R.mipmap.sou18_night_a530;
+            case 19: return R.mipmap.sou19_night_a530;
+            case 20: return R.mipmap.sou20_night_a530;
+            default: return R.mipmap.sou20_night_a530;
         }
     }
 

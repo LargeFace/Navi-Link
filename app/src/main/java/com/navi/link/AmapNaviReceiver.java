@@ -10,7 +10,7 @@ import org.json.JSONArray;
 public class AmapNaviReceiver extends BroadcastReceiver {
 
     private static final String TAG = "AmapNavi";
-    private boolean isLog = false;
+    private boolean isLog = true;
     @Override
     public void onReceive(Context context, Intent intent) {
         if (!"AUTONAVI_STANDARD_BROADCAST_SEND".equals(intent.getAction())) return;
@@ -161,6 +161,11 @@ public class AmapNaviReceiver extends BroadcastReceiver {
                 summaryStr, eta, progressPercentage, curSpeed,
                 limitedSpeed, cameraDist, cameraSpeed,
                 endPoiName, totalLightNum, remainLightNum, curRoadName, carDirection);
+
+        // 出口信息
+        String exitName = intent.getStringExtra("EXIT_NAME_INFO");
+        String exitDirection = intent.getStringExtra("EXIT_DIRECTION_INFO");
+        manager.updateExitInfo(exitName, exitDirection);
     }
 
     private void handleCruiseInfo(Intent intent, FloatingWindowManager manager) {
