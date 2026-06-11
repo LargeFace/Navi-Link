@@ -64,6 +64,8 @@ public class FloatingWindowManager {
     private LinearLayout llCnTrafficLightsContainer;
     private LaneLineView laneLineView;
     private LaneLineView laneLineViewFull;
+    private View llCnCameraDist;
+    private TextView tvCnCameraDist;
 
     // 常规导航 UI
     private ImageView ivTurnIcon;
@@ -599,6 +601,8 @@ public class FloatingWindowManager {
         tvLightTimeFull = null;
         ivActionIconFull = null;
         cvFullMiddle = null;
+        llCnCameraDist = null;
+        tvCnCameraDist = null;
     }
 
     private void bindCruiseViews() {
@@ -614,6 +618,8 @@ public class FloatingWindowManager {
         tvCnSpeedLimit = floatingView.findViewById(R.id.tv_cn_speed_limit);
         llCnTrafficLightsContainer = floatingView.findViewById(R.id.ll_cn_traffic_lights_container);
         laneLineView = floatingView.findViewById(R.id.lane_line_view);
+        llCnCameraDist = floatingView.findViewById(R.id.ll_cn_camera_dist);
+        tvCnCameraDist = floatingView.findViewById(R.id.tv_cn_camera_dist);
     }
 
     private void bindNormalViews() {
@@ -697,14 +703,7 @@ public class FloatingWindowManager {
             if (tvCruiseRoadName != null && !cachedRoadName.isEmpty()) tvCruiseRoadName.setText(cachedRoadName);
             if (tvCnSpeed != null) tvCnSpeed.setText(String.valueOf(cachedSpeed));
             if (tvCnRoadName != null && !cachedRoadName.isEmpty()) tvCnRoadName.setText(cachedRoadName);
-            if (tvCnSpeedLimit != null) {
-                if (cachedCameraSpeed > 0) {
-                    tvCnSpeedLimit.setText(String.valueOf(cachedCameraSpeed));
-//                    tvCnSpeedLimit.setVisibility(View.VISIBLE);
-                } else {
-                    tvCnSpeedLimit.setText("--");
-                }
-            }
+            updateCruiseCameraAndLimit(cachedCameraSpeed, cachedCameraDist);
             if (laneLineView != null && cachedDriveWayJson != null)
                 laneLineView.updateLanes(cachedDriveWayJson);
         } else if (currentMode == MODE_NAVI) {
@@ -1062,6 +1061,7 @@ public class FloatingWindowManager {
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(textSecondary);
         if (tvCnRoadName != null) tvCnRoadName.setTextColor(textPrimary);
+        if (tvCnCameraDist != null) tvCnCameraDist.setTextColor(textPrimary);
 //        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(textPrimary);
 
         // 常规导航
@@ -1107,6 +1107,7 @@ public class FloatingWindowManager {
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(TEXT_SECONDARY_DARK);
         if (tvCnRoadName != null) tvCnRoadName.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvCnCameraDist != null) tvCnCameraDist.setTextColor(TEXT_PRIMARY_DARK);
 //        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(TEXT_PRIMARY_DARK);
 
         // 常规导航
@@ -1243,26 +1244,53 @@ public class FloatingWindowManager {
 
     // ======================== 巡航数据更新 ========================
 
-    public void updateCruiseInfo(int speed, String roadName, int cameraSpeed) {
+    public void updateCruiseInfo(int speed, String roadName, int cameraSpeed, int cameraDist) {
         hasCachedData = true;
         cachedSpeed = speed;
         cachedRoadName = roadName != null ? roadName : "";
         cachedCameraSpeed = cameraSpeed;
+        cachedCameraDist = cameraDist;
         if (isShowing && floatingView != null && currentMode == MODE_CRUISE) {
             if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(speed));
             if (tvCruiseRoadName != null && roadName != null) tvCruiseRoadName.setText(roadName);
             if (tvCnSpeed != null) tvCnSpeed.setText(String.valueOf(speed));
             if (tvCnRoadName != null && roadName != null) tvCnRoadName.setText(roadName);
-            if (tvCnSpeedLimit != null) {
-                if (cameraSpeed > 0) {
-                    tvCnSpeedLimit.setText(String.valueOf(cameraSpeed));
-//                    tvCnSpeedLimit.setVisibility(View.VISIBLE);
-                } else {
-                    tvCnSpeedLimit.setText("--");
-                }
-            }
+            updateCruiseCameraAndLimit(cameraSpeed, cameraDist);
             // 速度/路名文字变化后重新测量窗口，避免内容变宽时被旧宽度截断
             remeasureWindow();
+        }
+    }
+
+    private void updateCruiseCameraAndLimit(int cameraSpeed, int cameraDist) {
+        if (cameraSpeed > 0) {
+            // 有限速，显示限速，隐藏距离
+            if (tvCnSpeedLimit != null) {
+                tvCnSpeedLimit.setText(String.valueOf(cameraSpeed));
+                tvCnSpeedLimit.setVisibility(View.VISIBLE);
+            }
+            if (llCnCameraDist != null) {
+                llCnCameraDist.setVisibility(View.GONE);
+            }
+        } else if (cameraDist > 0) {
+            // 无限速且有距离，显示距离，隐藏限速
+            if (llCnCameraDist != null) {
+                if (tvCnCameraDist != null) {
+                    tvCnCameraDist.setText(cameraDist + "米");
+                }
+                llCnCameraDist.setVisibility(View.VISIBLE);
+            }
+            if (tvCnSpeedLimit != null) {
+                tvCnSpeedLimit.setVisibility(View.GONE);
+            }
+        } else {
+            // 都无，显示限速，值为0
+            if (tvCnSpeedLimit != null) {
+                tvCnSpeedLimit.setText("0");
+                tvCnSpeedLimit.setVisibility(View.VISIBLE);
+            }
+            if (llCnCameraDist != null) {
+                llCnCameraDist.setVisibility(View.GONE);
+            }
         }
     }
 

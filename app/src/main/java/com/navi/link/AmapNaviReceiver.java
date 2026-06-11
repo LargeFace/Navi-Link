@@ -181,7 +181,8 @@ public class AmapNaviReceiver extends BroadcastReceiver {
         int curSpeed = intent.getIntExtra("CUR_SPEED", 0);
         String curRoadName = intent.getStringExtra("CUR_ROAD_NAME");
         int cameraSpeed = intent.getIntExtra("CAMERA_SPEED", 0);
+        int cameraDist = intent.getIntExtra("CAMERA_DIST", 0);
         if (curRoadName == null) curRoadName = "未知道路";
-        manager.updateCruiseInfo(curSpeed, curRoadName, cameraSpeed);
+        manager.updateCruiseInfo(curSpeed, curRoadName, cameraSpeed, cameraDist);
     }
 }
