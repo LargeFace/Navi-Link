@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/window_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:id="@+id/root_layout"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:background="@drawable/bg_floating_dark">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <!-- 第一行：速度 + 路名 + 限速 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_cn_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:text="0"
+                    android:textColor="#FF0099FF"
+                    android:textSize="40sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_cn_speed_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="km/h"
+                    android:textColor="#BBFFFFFF"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_cn_speed"
+                    app:layout_constraintStart_toEndOf="@id/tv_cn_speed" />
+
+                <View
+                    android:id="@+id/cn_divider"
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="8dp"
+                    android:background="#33FFFFFF"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tv_cn_speed_unit"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_cn_road_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="无名道路"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tv_cn_speed_limit"
+                    app:layout_constraintStart_toEndOf="@id/cn_divider"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_cn_speed_limit"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginStart="6dp"
+                    android:text="120"
+                    android:gravity="center"
+                    android:background="@drawable/camera_shape"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:visibility="visible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 第二行：红绿灯组 -->
+            <LinearLayout
+                android:id="@+id/ll_cn_traffic_lights_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone" />
+
+            <!-- 车道线组件 -->
+            <com.navi.link.LaneLineView
+                android:id="@+id/lane_line_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="6dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

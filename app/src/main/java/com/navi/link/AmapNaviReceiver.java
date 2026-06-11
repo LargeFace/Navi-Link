@@ -49,6 +49,15 @@ public class AmapNaviReceiver extends BroadcastReceiver {
             return;
         }
 
+        if (keyType == 13012) {
+            // 车道线数据
+            String driveWay = intent.getStringExtra("EXTRA_DRIVE_WAY");
+            if (driveWay != null) {
+                manager.updateLaneLines(driveWay);
+            }
+            return;
+        }
+
         // 昼夜模式切换广播
         if (keyType == 10019) {
             int extraState = intent.getIntExtra("EXTRA_STATE", -1);
@@ -171,7 +180,8 @@ public class AmapNaviReceiver extends BroadcastReceiver {
     private void handleCruiseInfo(Intent intent, FloatingWindowManager manager) {
         int curSpeed = intent.getIntExtra("CUR_SPEED", 0);
         String curRoadName = intent.getStringExtra("CUR_ROAD_NAME");
+        int cameraSpeed = intent.getIntExtra("CAMERA_SPEED", 0);
         if (curRoadName == null) curRoadName = "未知道路";
-        manager.updateCruiseInfo(curSpeed, curRoadName);
+        manager.updateCruiseInfo(curSpeed, curRoadName, cameraSpeed);
     }
 }

@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_traffic_light_green" />
+            android:src="@drawable/ic_traffic_light_yellow" />
 
         <ImageView
             android:id="@+id/iv_light_arrow"
@@ -27,7 +27,7 @@
             android:layout_gravity="center"
             android:padding="4dp"
             android:scaleType="centerInside"
-            android:src="@mipmap/ic_navi_straight" />
+            android:src="@mipmap/light_straight" />
     </FrameLayout>
 
     <TextView
@@ -37,7 +37,7 @@
         android:layout_marginStart="4dp"
         android:layout_marginEnd="3dp"
         android:includeFontPadding="false"
-        android:text="94"
+        android:text="等"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
         android:textStyle="bold" />

@@ -30,7 +30,7 @@
                 android:textColor="#FFFFFF"
                 android:layout_centerInParent="true"
                 android:id="@+id/tv_full_speed"
-                android:text="123"
+                android:text="0"
                 android:textStyle="bold"
                 android:textSize="24sp"
                 android:layout_width="wrap_content"
@@ -62,10 +62,18 @@
             android:layout_height="50dp"
             android:textStyle="bold"
             android:gravity="center"
-            android:text="123"
+            android:text="0"
             android:textColor="#1a1a1a"
             android:textSize="24sp" />
     </RelativeLayout>
+            <!-- 车道线组件 -->
+            <com.navi.link.LaneLineView
+                android:id="@+id/lane_line_view_full"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="6dp"
+                android:visibility="gone" />
 <LinearLayout
     android:layout_marginTop="15dp"
     android:gravity="center_vertical"
@@ -126,7 +134,7 @@
                 android:layout_height="34dp"
                 android:layout_marginStart="5dp"
                 android:scaleType="centerInside"
-                android:src="@mipmap/ic_navi_u_turn"/>
+                android:src="@mipmap/light_straight"/>
             <TextView
                 android:id="@+id/tv_distance_num_full"
                 android:layout_width="wrap_content"

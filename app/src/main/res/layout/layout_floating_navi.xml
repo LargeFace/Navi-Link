@@ -18,20 +18,30 @@
             android:orientation="vertical">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:paddingTop="15dp"
+                android:paddingTop="10dp"
                 android:paddingRight="5dp"
-                android:paddingBottom="15dp"
+                android:paddingBottom="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
+                <TextView
+                    android:id="@+id/tv_navi_light_count"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:text="🚦3"/>
                 <ImageView
                     android:id="@+id/iv_turn_icon"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:layout_marginStart="5dp"
                     android:layout_marginEnd="5dp"
                     android:scaleType="centerInside"
-                    android:src="@mipmap/ic_navi_u_turn"
+                    android:src="@mipmap/sou2_night_a530"
                     app:tint="#FFFFFF"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -84,12 +94,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="12dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="坂雪岗大道"
+                    android:text="下个道路名称"
                     android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/ll_traffic_light_group"
@@ -103,7 +113,6 @@
                     android:layout_height="50dp"
                     android:layout_marginTop="4dp"
                     android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -152,6 +161,7 @@
                     android:layout_width="1dp"
                     android:layout_height="14dp"
                     android:layout_marginStart="12dp"
+
                     android:background="#E0E0E0"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@id/tv_summary"
@@ -166,10 +176,13 @@
                     android:textColor="#E0E0E0"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
+
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/v_divider"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </FrameLayout>

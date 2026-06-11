@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_traffic_light_green" />
+            android:src="@drawable/ic_traffic_light_yellow" />
 
         <ImageView
             android:layout_gravity="center"
@@ -28,7 +28,7 @@
             android:layout_height="30dp"
             android:padding="4dp"
             android:scaleType="centerInside"
-            android:src="@mipmap/ic_navi_left" />
+            android:src="@mipmap/light_straight" />
     </FrameLayout>
 
     <TextView

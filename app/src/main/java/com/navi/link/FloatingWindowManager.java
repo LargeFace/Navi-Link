@@ -51,11 +51,19 @@ public class FloatingWindowManager {
     private WindowManager.LayoutParams layoutParams;
     private View scaleTarget;
 
-    // 巡航模式 UI
+    // 巡航模式 UI（灵动岛）
     private TextView tvCruiseSpeed;
     private TextView tvCruiseRoadName;
     private LinearLayout llTrafficLightsContainer;
     private View tvCruiseMargin;
+
+    // 巡航模式 UI（常规/全数据共用）
+    private TextView tvCnSpeed;
+    private TextView tvCnRoadName;
+    private TextView tvCnSpeedLimit;
+    private LinearLayout llCnTrafficLightsContainer;
+    private LaneLineView laneLineView;
+    private LaneLineView laneLineViewFull;
 
     // 常规导航 UI
     private ImageView ivTurnIcon;
@@ -74,6 +82,7 @@ public class FloatingWindowManager {
     private TextView tvLightTime;
     private View layoutInfoBar;
     private TextView tvExitInfo;
+    private TextView tvNaviLightCount;
 
     // 灵动岛 UI
     private ImageView ivActionIconMin;
@@ -113,7 +122,7 @@ public class FloatingWindowManager {
     // 状态
     private int currentMode = MODE_CRUISE;
     private int styleMode = 0; // 0=normal, 1=minimal, 2=full
-    // 各模式独立缩放: [0]=常规, [1]=灵动岛/巡航(共用), [2]=全数据
+    // 各模式独立缩放: [0]=常规/常规巡航, [1]=灵动岛/灵动岛巡航, [2]=全数据
     private float[] scales = {1.0f, 0.5f, 0.9f};
     private int themeColor = 0xFF4FC3F7;
     private boolean isShowing = false;
@@ -175,6 +184,7 @@ public class FloatingWindowManager {
     private String cachedCurRoadName = "";
     private int cachedCarDirection = 0;
     private String cachedTmcJson = null;
+    private String cachedDriveWayJson = null;
     private String cachedExitName = "";
     private String cachedExitDirection = "";
 
@@ -232,9 +242,9 @@ public class FloatingWindowManager {
         backgroundMode = sp.getInt("background_mode", 0); // 默认深色背景
     }
 
-    /** 当前模式对应的缩放索引: 常规=0, 灵动岛/巡航=1, 全数据=2 */
+    /** 当前模式对应的缩放索引: 常规/常规巡航=0, 灵动岛/灵动岛巡航=1, 全数据=2 */
     private int getScaleIndex() {
-        if (currentMode == MODE_CRUISE) return 1; // 巡航复用灵动岛
+        if (currentMode == MODE_CRUISE) return styleMode == 1 ? 1 : 0; // 灵动岛巡航用1，常规巡航用0
         if (styleMode == 0) return 0; // 常规
         return styleMode; // 1=灵动岛, 2=全数据
     }
@@ -403,7 +413,9 @@ public class FloatingWindowManager {
             else if (styleMode == 1) layoutRes = R.layout.layout_floating_navi_minimal;
             else layoutRes = R.layout.layout_floating_navi;
         } else {
-            layoutRes = R.layout.layout_floating_cruise;
+            layoutRes = styleMode == 1
+                    ? R.layout.layout_floating_cruise
+                    : R.layout.layout_floating_cruise_normal;
         }
 
         View inflated = LayoutInflater.from(context).inflate(layoutRes, null);
@@ -514,7 +526,11 @@ public class FloatingWindowManager {
     private void bindViews() {
         clearAllRefs();
         if (currentMode == MODE_CRUISE) {
-            bindCruiseViews();
+            if (styleMode == 1) {
+                bindCruiseViews();
+            } else {
+                bindCruiseNormalViews();
+            }
         } else if (styleMode == 2) {
             bindFullViews();
         } else if (styleMode == 1) {
@@ -529,6 +545,12 @@ public class FloatingWindowManager {
         tvCruiseRoadName = null;
         llTrafficLightsContainer = null;
         tvCruiseMargin = null;
+        tvCnSpeed = null;
+        tvCnRoadName = null;
+        tvCnSpeedLimit = null;
+        llCnTrafficLightsContainer = null;
+        laneLineView = null;
+        laneLineViewFull = null;
         ivTurnIcon = null;
         tvDistanceNum = null;
         tvDistanceUnit = null;
@@ -545,6 +567,7 @@ public class FloatingWindowManager {
         tvLightTime = null;
         layoutInfoBar = null;
         tvExitInfo = null;
+        tvNaviLightCount = null;
         ivActionIconMin = null;
         tvMinSpeed = null;
         tvMinSpeedUnit = null;
@@ -585,6 +608,14 @@ public class FloatingWindowManager {
         tvCruiseMargin = floatingView.findViewById(R.id.tv_margin);
     }
 
+    private void bindCruiseNormalViews() {
+        tvCnSpeed = floatingView.findViewById(R.id.tv_cn_speed);
+        tvCnRoadName = floatingView.findViewById(R.id.tv_cn_road_name);
+        tvCnSpeedLimit = floatingView.findViewById(R.id.tv_cn_speed_limit);
+        llCnTrafficLightsContainer = floatingView.findViewById(R.id.ll_cn_traffic_lights_container);
+        laneLineView = floatingView.findViewById(R.id.lane_line_view);
+    }
+
     private void bindNormalViews() {
         ivTurnIcon = floatingView.findViewById(R.id.iv_turn_icon);
         tvDistanceNum = floatingView.findViewById(R.id.tv_distance_num);
@@ -596,6 +627,7 @@ public class FloatingWindowManager {
         tvEta = floatingView.findViewById(R.id.tv_eta);
         layoutInfoBar = floatingView.findViewById(R.id.layout_info_bar);
         tvExitInfo = floatingView.findViewById(R.id.tv_exit_info);
+        tvNaviLightCount = floatingView.findViewById(R.id.tv_navi_light_count);
         vDivider = floatingView.findViewById(R.id.v_divider);
 
         View lightGroup = floatingView.findViewById(R.id.ll_traffic_light_group);
@@ -652,6 +684,7 @@ public class FloatingWindowManager {
         tvFullLabelEnd = floatingView.findViewById(R.id.tv_full_label_end);
         tvFullDirection = floatingView.findViewById(R.id.tv_full_direction);
         tmcProgressBarFull = floatingView.findViewById(R.id.tmc_progress_bar_full);
+        laneLineViewFull = floatingView.findViewById(R.id.lane_line_view_full);
     }
 
     /**
@@ -662,6 +695,18 @@ public class FloatingWindowManager {
         if (currentMode == MODE_CRUISE) {
             if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(cachedSpeed));
             if (tvCruiseRoadName != null && !cachedRoadName.isEmpty()) tvCruiseRoadName.setText(cachedRoadName);
+            if (tvCnSpeed != null) tvCnSpeed.setText(String.valueOf(cachedSpeed));
+            if (tvCnRoadName != null && !cachedRoadName.isEmpty()) tvCnRoadName.setText(cachedRoadName);
+            if (tvCnSpeedLimit != null) {
+                if (cachedCameraSpeed > 0) {
+                    tvCnSpeedLimit.setText(String.valueOf(cachedCameraSpeed));
+//                    tvCnSpeedLimit.setVisibility(View.VISIBLE);
+                }/* else {
+                    tvCnSpeedLimit.setVisibility(View.GONE);
+                }*/
+            }
+            if (laneLineView != null && cachedDriveWayJson != null)
+                laneLineView.updateLanes(cachedDriveWayJson);
         } else if (currentMode == MODE_NAVI) {
             if (styleMode == 2) {
                 if (cachedIcon >= 0) {
@@ -690,6 +735,8 @@ public class FloatingWindowManager {
                     tvFullDirection.setText("朝向 " + getDirectionText(cachedCarDirection));
                 if (tmcProgressBarFull != null && cachedTmcJson != null)
                     tmcProgressBarFull.updateTmcData(cachedTmcJson);
+                if (laneLineViewFull != null && cachedDriveWayJson != null)
+                    laneLineViewFull.updateLanes(cachedDriveWayJson);
             } else if (styleMode == 1) {
                 if (cachedIcon >= 0) {
                     int res = getTurnIconRes(cachedIcon);
@@ -713,6 +760,8 @@ public class FloatingWindowManager {
                 if (tmcProgressBar != null && cachedTmcJson != null) tmcProgressBar.updateTmcData(cachedTmcJson);
                 if (tvSummary != null) tvSummary.setText(cachedSummaryStr);
                 if (tvEta != null) tvEta.setText(cachedEta);
+                if (tvNaviLightCount != null && cachedRemainLightNum > 0)
+                    tvNaviLightCount.setText("🚦" + cachedRemainLightNum + "个");
                 // 恢复出口信息
                 if (tvExitInfo != null) {
                     if (!cachedExitName.isEmpty()) {
@@ -905,6 +954,8 @@ public class FloatingWindowManager {
         }
 
         if (tvCruiseSpeed != null) tvCruiseSpeed.setTextColor(fullCardAccent);
+        if (tvCnSpeed != null) tvCnSpeed.setTextColor(fullCardAccent);
+//        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(accentColor);
         if (tvMinSpeed != null) tvMinSpeed.setTextColor(fullCardAccent);
         if (tvFullSpeed != null) tvFullSpeed.setTextColor(fullCardAccent);
         if (tvFullSpeedUnit != null) tvFullSpeedUnit.setTextColor(fullCardAccent);
@@ -955,8 +1006,9 @@ public class FloatingWindowManager {
         if (target == null) target = floatingView;
 
         // 透明背景模式处理
-        // 根据样式确定圆角: 灵动岛/巡航=40dp, 常规/全数据=12dp
-        int cornerDp = (styleMode == 1 || currentMode == MODE_CRUISE) ? 40 : 12;
+        // 根据样式确定圆角: 灵动岛/灵动岛巡航=40dp, 常规/常规巡航/全数据=12dp
+        boolean isIslandStyle = styleMode == 1;
+        int cornerDp = isIslandStyle ? 40 : 12;
         int cornerPx = Math.round(dpToPx(cornerDp) * getScale());
 
         if (backgroundMode == 2) {
@@ -1009,6 +1061,8 @@ public class FloatingWindowManager {
 
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(textSecondary);
+        if (tvCnRoadName != null) tvCnRoadName.setTextColor(textSecondary);
+//        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(textPrimary);
 
         // 常规导航
         if (tvDistanceNum != null) tvDistanceNum.setTextColor(textPrimary);
@@ -1017,6 +1071,7 @@ public class FloatingWindowManager {
         if (tvRoadName != null) tvRoadName.setTextColor(textPrimary);
         if (tvSummary != null) tvSummary.setTextColor(textSecondary);
         if (tvEta != null) tvEta.setTextColor(textSecondary);
+        if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(textPrimary);
         // 箭头图标跟随文字颜色
         if (ivTurnIcon != null) ivTurnIcon.setColorFilter(textPrimary);
         // 分隔线跟随主文字颜色
@@ -1051,6 +1106,8 @@ public class FloatingWindowManager {
     private void resetToDefaultTextColors() {
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvCnRoadName != null) tvCnRoadName.setTextColor(TEXT_SECONDARY_DARK);
+//        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(TEXT_PRIMARY_DARK);
 
         // 常规导航
         if (tvDistanceNum != null) tvDistanceNum.setTextColor(TEXT_PRIMARY_DARK);
@@ -1059,6 +1116,7 @@ public class FloatingWindowManager {
         if (tvRoadName != null) tvRoadName.setTextColor(TEXT_PRIMARY_DARK);
         if (tvSummary != null) tvSummary.setTextColor(TEXT_SECONDARY_DARK);
         if (tvEta != null) tvEta.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(TEXT_PRIMARY_DARK);
         if (ivTurnIcon != null) ivTurnIcon.clearColorFilter();
         if (vDivider != null) vDivider.setBackgroundColor(TEXT_PRIMARY_DARK);
         if (tvExitInfo != null) tvExitInfo.setTextColor(TEXT_SECONDARY_DARK);
@@ -1185,67 +1243,89 @@ public class FloatingWindowManager {
 
     // ======================== 巡航数据更新 ========================
 
-    public void updateCruiseInfo(int speed, String roadName) {
+    public void updateCruiseInfo(int speed, String roadName, int cameraSpeed) {
         hasCachedData = true;
         cachedSpeed = speed;
         cachedRoadName = roadName != null ? roadName : "";
+        cachedCameraSpeed = cameraSpeed;
         if (isShowing && floatingView != null && currentMode == MODE_CRUISE) {
             if (tvCruiseSpeed != null) tvCruiseSpeed.setText(String.valueOf(speed));
             if (tvCruiseRoadName != null && roadName != null) tvCruiseRoadName.setText(roadName);
+            if (tvCnSpeed != null) tvCnSpeed.setText(String.valueOf(speed));
+            if (tvCnRoadName != null && roadName != null) tvCnRoadName.setText(roadName);
+            if (tvCnSpeedLimit != null) {
+                if (cameraSpeed > 0) {
+                    tvCnSpeedLimit.setText(String.valueOf(cameraSpeed));
+//                    tvCnSpeedLimit.setVisibility(View.VISIBLE);
+                } /*else {
+                    tvCnSpeedLimit.setVisibility(View.GONE);
+                }*/
+            }
             // 速度/路名文字变化后重新测量窗口，避免内容变宽时被旧宽度截断
             remeasureWindow();
         }
     }
 
+    public void updateLaneLines(String driveWayJson) {
+        cachedDriveWayJson = driveWayJson;
+        if (laneLineView != null) {
+            laneLineView.updateLanes(driveWayJson);
+        }
+        if (laneLineViewFull != null) {
+            laneLineViewFull.updateLanes(driveWayJson);
+        }
+    }
+
     public void updateCruiseTrafficLights(JSONArray lightsArray) {
-        if (!isShowing || floatingView == null || currentMode != MODE_CRUISE || llTrafficLightsContainer == null)
-            return;
+        if (!isShowing || floatingView == null || currentMode != MODE_CRUISE) return;
+        LinearLayout container = llTrafficLightsContainer != null ? llTrafficLightsContainer : llCnTrafficLightsContainer;
+        if (container == null) return;
 
         int count = lightsArray != null ? lightsArray.length() : 0;
-        int childCount = llTrafficLightsContainer.getChildCount();
+        int childCount = container.getChildCount();
 
         if (count == 0) {
-            llTrafficLightsContainer.setVisibility(View.GONE);
+            container.setVisibility(View.GONE);
 //            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
-            if (childCount > 0) llTrafficLightsContainer.removeAllViews();
+            if (childCount > 0) container.removeAllViews();
             remeasureWindow();
             return;
         }
 
         if (count != childCount) {
-            llTrafficLightsContainer.removeAllViews();
+            container.removeAllViews();
             LayoutInflater inflater = LayoutInflater.from(context);
             for (int i = 0; i < count; i++) {
                 try {
                     JSONObject lightObj = lightsArray.getJSONObject(i);
-                    View lightView = inflater.inflate(R.layout.item_cruise_traffic_light, llTrafficLightsContainer, false);
+                    View lightView = inflater.inflate(R.layout.item_cruise_traffic_light, container, false);
                     float scale = getScale();
                     if (scale != 1.0f) scaleViewRecursive(lightView, scale);
                     updateSingleLightView(lightView, lightObj);
-                    llTrafficLightsContainer.addView(lightView);
+                    container.addView(lightView);
                 } catch (Exception ignored) {
                 }
             }
         } else {
             for (int i = 0; i < count; i++) {
                 try {
-                    updateSingleLightView(llTrafficLightsContainer.getChildAt(i), lightsArray.getJSONObject(i));
+                    updateSingleLightView(container.getChildAt(i), lightsArray.getJSONObject(i));
                 } catch (Exception ignored) {
                 }
             }
         }
-        llTrafficLightsContainer.setVisibility(View.VISIBLE);
+        container.setVisibility(View.VISIBLE);
         if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.VISIBLE);
         // 所有灯都倒计时为0时隐藏容器
         boolean allGone = true;
-        for (int i = 0; i < llTrafficLightsContainer.getChildCount(); i++) {
-            if (llTrafficLightsContainer.getChildAt(i).getVisibility() == View.VISIBLE) {
+        for (int i = 0; i < container.getChildCount(); i++) {
+            if (container.getChildAt(i).getVisibility() == View.VISIBLE) {
                 allGone = false;
                 break;
             }
         }
         if (allGone) {
-            llTrafficLightsContainer.setVisibility(View.GONE);
+            container.setVisibility(View.GONE);
 //            if (tvCruiseMargin != null) tvCruiseMargin.setVisibility(View.GONE);
         }
         remeasureWindow();
@@ -1320,13 +1400,13 @@ public class FloatingWindowManager {
             } else if (styleMode == 1) {
                 updateMinimalNaviInfo(icon, disNum, disUnit, roadName, curSpeed);
             } else {
-                updateNormalNaviInfo(icon, disNum, disUnit, actionStr, roadName, summaryStr, eta, progress);
+                updateNormalNaviInfo(icon, disNum, disUnit, actionStr, roadName, summaryStr, eta, remainLightNum);
             }
         }
     }
 
     private void updateNormalNaviInfo(int icon, String disNum, String disUnit, String actionStr,
-                                       String roadName, String summaryStr, String eta, int progress) {
+                                       String roadName, String summaryStr, String eta, int remainLightNum) {
         int turnIconRes = getTurnIconRes(icon);
         if (ivTurnIcon != null && turnIconRes != 0) ivTurnIcon.setImageResource(turnIconRes);
         if (tvDistanceNum != null) tvDistanceNum.setText(disNum);
@@ -1336,6 +1416,13 @@ public class FloatingWindowManager {
         // progress bar now handled by TmcProgressBar via TMC data
         if (tvSummary != null) tvSummary.setText(summaryStr);
         if (tvEta != null) tvEta.setText(formatEta(eta));
+        if (tvNaviLightCount != null) {
+            if (remainLightNum > 0) {
+                tvNaviLightCount.setText("🚦" + remainLightNum + "个");
+            } else {
+                tvNaviLightCount.setText("🚦--");
+            }
+        }
     }
 
     /**
