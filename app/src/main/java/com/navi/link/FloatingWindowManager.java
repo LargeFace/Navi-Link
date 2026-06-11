@@ -1061,7 +1061,7 @@ public class FloatingWindowManager {
 
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(textSecondary);
-        if (tvCnRoadName != null) tvCnRoadName.setTextColor(textSecondary);
+        if (tvCnRoadName != null) tvCnRoadName.setTextColor(textPrimary);
 //        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(textPrimary);
 
         // 常规导航
@@ -1106,7 +1106,7 @@ public class FloatingWindowManager {
     private void resetToDefaultTextColors() {
         // 巡航
         if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(TEXT_SECONDARY_DARK);
-        if (tvCnRoadName != null) tvCnRoadName.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvCnRoadName != null) tvCnRoadName.setTextColor(TEXT_PRIMARY_DARK);
 //        if (tvCnSpeedLimit != null) tvCnSpeedLimit.setTextColor(TEXT_PRIMARY_DARK);
 
         // 常规导航
@@ -1295,10 +1295,13 @@ public class FloatingWindowManager {
         if (count != childCount) {
             container.removeAllViews();
             LayoutInflater inflater = LayoutInflater.from(context);
+            int layoutRes = (count >= 3)
+                    ? R.layout.item_cruise_traffic_light_small
+                    : R.layout.item_cruise_traffic_light;
             for (int i = 0; i < count; i++) {
                 try {
                     JSONObject lightObj = lightsArray.getJSONObject(i);
-                    View lightView = inflater.inflate(R.layout.item_cruise_traffic_light, container, false);
+                    View lightView = inflater.inflate(layoutRes, container, false);
                     float scale = getScale();
                     if (scale != 1.0f) scaleViewRecursive(lightView, scale);
                     updateSingleLightView(lightView, lightObj);

@@ -35,7 +35,32 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-
+<LinearLayout
+    android:visibility="gone"
+    android:id="@+id/ll_cn_camera_dist"
+    android:gravity="center_vertical"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp">
+    <ImageView
+        android:padding="10dp"
+        android:background="@drawable/camera_shape"
+        android:src="@mipmap/camera_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:tint="#000000" />
+    <TextView
+        android:textStyle="bold"
+        android:id="@+id/tv_cn_camera_dist"
+        android:layout_marginStart="2dp"
+        android:textColor="#ffffff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="180米"
+        android:textSize="18sp"/>
+</LinearLayout>
                 <TextView
                     android:id="@+id/tv_cn_speed_unit"
                     android:layout_width="wrap_content"
@@ -74,6 +99,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
+
                     android:id="@+id/tv_cn_speed_limit"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
@@ -84,7 +110,7 @@
                     android:textColor="#000000"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:visibility="visible"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
