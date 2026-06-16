@@ -7,7 +7,10 @@
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:padding="20dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="20dp"
+        android:paddingTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -34,6 +37,57 @@
             android:text="○ 悬浮窗未启动"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+        <!-- Home Button -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_home_app"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="12dp"
+            app:cardBackgroundColor="#FF262626"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/btn_exit_app"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
+            app:layout_constraintBottom_toBottomOf="@id/tv_status">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:src="@mipmap/btn_home"
+                app:tint="#FFFFFFFF" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Exit Button -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_exit_app"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:cardBackgroundColor="#FF262626"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
+            app:layout_constraintBottom_toBottomOf="@id/tv_status">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:src="@mipmap/btn_exit"
+                app:tint="#FFFFFFFF" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Cards Container -->
         <LinearLayout
@@ -167,13 +221,13 @@
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Go home button -->
+                        <!-- Start Amap button -->
                         <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/cv_go_home"
+                            android:id="@+id/card_start_amap"
                             android:focusable="true"
                             android:clickable="true"
                             android:layout_width="0dp"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             app:cardBackgroundColor="#FF262626"
                             app:cardCornerRadius="12dp"
@@ -181,18 +235,33 @@
                             app:strokeColor="#FF444444"
                             app:strokeWidth="1dp">
 
-                            <TextView
-                                android:id="@+id/btn_go_home"
+                            <LinearLayout
                                 android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="12dp"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:text="回到桌面"
-                                android:textColor="#ffffff"
-                                android:textStyle="bold"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?android:attr/selectableItemBackground"
-                                android:textSize="15sp"/>
+                                android:layout_height="wrap_content">
+
+                                <RadioButton
+                                    android:id="@+id/rb_start_amap"
+                                    android:textSize="14sp"
+                                    android:textColor="#FFFFFFFF"
+                                    android:clickable="false"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="启动高德"
+                                    android:buttonTint="#FF4FC3F7" />
+
+                                <TextView
+                                    android:id="@+id/tv_start_amap_desc"
+                                    android:textSize="11sp"
+                                    android:textColor="#FF888888"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:gravity="center"
+                                    android:text="选择应用" />
+                            </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>

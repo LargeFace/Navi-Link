@@ -22,6 +22,17 @@ import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.app.AlertDialog;
+import android.text.TextUtils;
+import java.util.List;
+import java.util.ArrayList;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -69,8 +80,9 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton rbBgDark;
     private RadioButton rbBgSemi;
     private RadioButton rbBgTransparent;
-    private TextView btnGoHome;
-    private CardView cvGoHome;
+    private MaterialCardView cardStartAmap;
+    private RadioButton rbStartAmap;
+    private TextView tvStartAmapDesc;
     private SeekBar sbScale;
     private View[] themeChips;
     private TextView tvScaleValue;
@@ -92,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean isMinimalStyle = false;
     private int styleMode = 0;
     private boolean isServiceOnlyMode = false;
+    private int startupMode = 0; // 0=正常, 1=纯服务, 2=启动高德地图
+    private String targetAmapPackage = "";
     private int backgroundMode = 0; // 0=深色, 1=半透明, 2=全透明
     private boolean cruiseEnabled = true;
     private boolean normalLaneEnabled = false;
@@ -136,8 +150,9 @@ public class MainActivity extends AppCompatActivity {
         rbBgDark = findViewById(R.id.rb_bg_dark);
         rbBgSemi = findViewById(R.id.rb_bg_semi);
         rbBgTransparent = findViewById(R.id.rb_bg_transparent);
-        btnGoHome = findViewById(R.id.btn_go_home);
-        cvGoHome = findViewById(R.id.cv_go_home);
+        cardStartAmap = findViewById(R.id.card_start_amap);
+        rbStartAmap = findViewById(R.id.rb_start_amap);
+        tvStartAmapDesc = findViewById(R.id.tv_start_amap_desc);
         sbScale = findViewById(R.id.sb_scale);
         tvScaleValue = findViewById(R.id.tv_scale_value);
         tvStatus = findViewById(R.id.tv_status);
@@ -154,14 +169,19 @@ public class MainActivity extends AppCompatActivity {
         tvSys = findViewById(R.id.tv_sys);
         tvStyle = findViewById(R.id.tv_style);
         tvOperation = findViewById(R.id.tv_operation);
-        View contentView = findViewById(android.R.id.content);
-        if (contentView instanceof ScrollView) {
-            ViewCompat.setOnApplyWindowInsetsListener(contentView, (view, windowInsetsCompat) -> {
+        android.view.ViewGroup contentView = findViewById(android.R.id.content);
+        View root = contentView.getChildAt(0);
+        if (root != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsetsCompat) -> {
                 Insets insets = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
-                view.setPadding(view.getPaddingLeft(), insets.top, view.getPaddingRight(), insets.bottom);
+                view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
                 return windowInsetsCompat;
             });
         }
+
+        androidx.core.view.WindowInsetsControllerCompat windowInsetsController =
+                androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        windowInsetsController.setAppearanceLightStatusBars(false);
     }
 
     private void loadPreferences() {
@@ -170,6 +190,13 @@ public class MainActivity extends AppCompatActivity {
         styleMode = sp.getInt(KEY_STYLE_MODE, isMinimalStyle ? 1 : 0);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
         isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
+        startupMode = sp.getInt("startup_mode", isServiceOnlyMode ? 1 : 0);
+        targetAmapPackage = sp.getString("target_amap_package", "");
+        if (startupMode == 2 && !TextUtils.isEmpty(targetAmapPackage)) {
+            if (tvStartAmapDesc != null) {
+                tvStartAmapDesc.setText("已选: " + targetAmapPackage);
+            }
+        }
         backgroundMode = sp.getInt("background_mode", 0);
         cruiseEnabled = sp.getBoolean("cruise_enabled", true);
         normalLaneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
@@ -195,19 +222,82 @@ public class MainActivity extends AppCompatActivity {
         initThemeColorChips();
     }
 
-    private void selectStartupMode(boolean serviceOnly) {
-        if (isServiceOnlyMode == serviceOnly) return;
-        isServiceOnlyMode = serviceOnly;
+    private void selectStartupMode(int mode) {
+        if (mode == 2) {
+            if (startupMode == 2 || TextUtils.isEmpty(targetAmapPackage)) {
+                showAmapSelectionDialog();
+            } else {
+                setStartupMode(2);
+            }
+            return;
+        }
+        setStartupMode(mode);
+    }
+
+    private void setStartupMode(int mode) {
+        if (startupMode == mode) return;
+        startupMode = mode;
         updateStartupSelection();
         savePreferences();
     }
 
+    private void showAmapSelectionDialog() {
+        PackageManager pm = getPackageManager();
+        List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+        List<ApplicationInfo> amapApps = new ArrayList<>();
+        for (ApplicationInfo app : apps) {
+            if (app.packageName != null && app.packageName.contains("com.autonavi")) {
+                amapApps.add(app);
+            }
+        }
+
+        if (amapApps.isEmpty()) {
+            Toast.makeText(this, "未找到已安装的高德地图应用", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayAdapter<ApplicationInfo> adapter = new ArrayAdapter<ApplicationInfo>(this, R.layout.item_app_list, amapApps) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_app_list, parent, false);
+                }
+                
+                ApplicationInfo appInfo = getItem(position);
+                ImageView icon = convertView.findViewById(R.id.iv_app_icon);
+                TextView name = convertView.findViewById(R.id.tv_app_name);
+                TextView pkg = convertView.findViewById(R.id.tv_app_package);
+                
+                if (appInfo != null) {
+                    icon.setImageDrawable(appInfo.loadIcon(pm));
+                    name.setText(appInfo.loadLabel(pm).toString());
+                    pkg.setText(appInfo.packageName);
+                }
+                
+                return convertView;
+            }
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("选择高德地图应用")
+                .setAdapter(adapter, (dialog, which) -> {
+                    targetAmapPackage = amapApps.get(which).packageName;
+                    if (tvStartAmapDesc != null) {
+                        tvStartAmapDesc.setText("已选: " + targetAmapPackage);
+                    }
+                    setStartupMode(2);
+                })
+                .show();
+    }
+
     private void updateStartupSelection() {
-        rbServiceOnly.setChecked(isServiceOnlyMode);
-        rbNormalStart.setChecked(!isServiceOnlyMode);
+        rbNormalStart.setChecked(startupMode == 0);
+        rbServiceOnly.setChecked(startupMode == 1);
+        if (rbStartAmap != null) rbStartAmap.setChecked(startupMode == 2);
         int accentColor = getAccentColor();
-        cardServiceOnly.setStrokeColor(isServiceOnlyMode ? accentColor : Color.parseColor("#444444"));
-        cardNormalStart.setStrokeColor(isServiceOnlyMode ? Color.parseColor("#444444") : accentColor);
+        cardNormalStart.setStrokeColor(startupMode == 0 ? accentColor : Color.parseColor("#444444"));
+        cardServiceOnly.setStrokeColor(startupMode == 1 ? accentColor : Color.parseColor("#444444"));
+        if (cardStartAmap != null) cardStartAmap.setStrokeColor(startupMode == 2 ? accentColor : Color.parseColor("#444444"));
     }
 
     private void selectStyle(int mode) {
@@ -261,7 +351,9 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean(KEY_IS_MINIMAL, isMinimalStyle)
                 .putInt(KEY_STYLE_MODE, styleMode)
                 .putInt(KEY_THEME_COLOR, themeColor)
-                .putBoolean(KEY_IS_SERVICE_ONLY, isServiceOnlyMode)
+                .putBoolean(KEY_IS_SERVICE_ONLY, startupMode == 1)
+                .putInt("startup_mode", startupMode)
+                .putString("target_amap_package", targetAmapPackage)
                 .putInt("background_mode", backgroundMode)
                 .putBoolean("cruise_enabled", cruiseEnabled)
                 .putBoolean("normal_navi_lane_enabled", normalLaneEnabled)
@@ -343,14 +435,8 @@ public class MainActivity extends AppCompatActivity {
         updateStyleSelection();
         updateBackgroundModeSelection();
 
-        // 回到桌面按钮：深色主题时保持暗底白字，浅色主题时跟随主题色
-        if (isDarkColor(themeColor)) {
-            cvGoHome.setCardBackgroundColor(0xFF262626);
-            btnGoHome.setTextColor(Color.WHITE);
-        } else {
-            cvGoHome.setCardBackgroundColor(themeColor);
-            btnGoHome.setTextColor(Color.WHITE);
-        }
+        // 单选按钮（RadioButton）的着色
+        if (rbStartAmap != null) rbStartAmap.setButtonTintList(accentColorStateList);
 
         // 更新单选按钮（RadioButton）的着色
         rbNormal.setButtonTintList(accentColorStateList);
@@ -375,6 +461,16 @@ public class MainActivity extends AppCompatActivity {
         tvStyle.setTextColor(accentColor);
         tvSys.setTextColor(accentColor);
         tvOperation.setTextColor(accentColor);
+
+        MaterialCardView btnExitApp = findViewById(R.id.btn_exit_app);
+        if (btnExitApp != null) {
+            btnExitApp.setCardBackgroundColor(themeColor);
+        }
+        MaterialCardView btnHomeApp = findViewById(R.id.btn_home_app);
+        if (btnHomeApp != null) {
+            btnHomeApp.setCardBackgroundColor(themeColor);
+        }
+
         // 通知悬浮窗管理器更新主题色
         FloatingWindowManager manager = FloatingWindowManager.getInstance();
         if (manager != null) {
@@ -407,15 +503,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        cardServiceOnly.setOnClickListener(v -> selectStartupMode(true));
-        cardNormalStart.setOnClickListener(v -> selectStartupMode(false));
+        View btnExitApp = findViewById(R.id.btn_exit_app);
+        if (btnExitApp != null) {
+            btnExitApp.setOnClickListener(v -> {
+                stopService(new Intent(MainActivity.this, AutoMapService.class));
+                finishAffinity();
+                System.exit(0);
+            });
+        }
+
+        cardServiceOnly.setOnClickListener(v -> selectStartupMode(1));
+        cardNormalStart.setOnClickListener(v -> selectStartupMode(0));
+        if (cardStartAmap != null) cardStartAmap.setOnClickListener(v -> selectStartupMode(2));
         cardNormal.setOnClickListener(v -> selectStyle(0));
         cardMinimal.setOnClickListener(v -> selectStyle(1));
         cardFull.setOnClickListener(v -> selectStyle(2));
         cardBgDark.setOnClickListener(v -> selectBackgroundMode(0));
         cardBgSemi.setOnClickListener(v -> selectBackgroundMode(1));
         cardBgTransparent.setOnClickListener(v -> selectBackgroundMode(2));
-        btnGoHome.setOnClickListener(v -> moveTaskToBack(true));
+        MaterialCardView btnHomeApp = findViewById(R.id.btn_home_app);
+        if (btnHomeApp != null) {
+            btnHomeApp.setOnClickListener(v -> moveTaskToBack(true));
+        }
 
         cbCruiseEnabled.setChecked(cruiseEnabled);
         if (tvCruiseStatus != null) tvCruiseStatus.setText(cruiseEnabled ? "巡航窗已启用" : "巡航窗已禁用");

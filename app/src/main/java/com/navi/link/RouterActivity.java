@@ -28,9 +28,12 @@ public class RouterActivity extends AppCompatActivity {
 
         SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
         boolean isServiceOnlyMode = sp.getBoolean("is_service_only", false);
+        int startupMode = sp.getInt("startup_mode", isServiceOnlyMode ? 1 : 0);
 
-        if (isServiceOnlyMode) {
+        if (startupMode == 1) {
             handleServiceOnlyMode();
+        } else if (startupMode == 2) {
+            handleStartAmapMode(sp);
         } else {
             // 正常打开 → 直接进配置页
             startMainActivity();
@@ -52,6 +55,33 @@ public class RouterActivity extends AppCompatActivity {
         } else {
             startAutoMapService();
             Toast.makeText(this, "服务已启动", Toast.LENGTH_SHORT).show();
+        }
+        finish();
+    }
+
+    private void handleStartAmapMode(SharedPreferences sp) {
+        if (!Settings.canDrawOverlays(this)) {
+            startMainActivity();
+            return;
+        }
+
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager == null || !manager.isShowing()) {
+            startAutoMapService();
+            Toast.makeText(this, "服务已启动", Toast.LENGTH_SHORT).show();
+        }
+
+        String targetPackage = sp.getString("target_amap_package", "");
+        if (!android.text.TextUtils.isEmpty(targetPackage)) {
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(targetPackage);
+            if (launchIntent != null) {
+                startActivity(launchIntent);
+            } else {
+                Toast.makeText(this, "未找到已配置的高德地图应用", Toast.LENGTH_SHORT).show();
+                startMainActivity();
+            }
+        } else {
+            startMainActivity();
         }
         finish();
     }

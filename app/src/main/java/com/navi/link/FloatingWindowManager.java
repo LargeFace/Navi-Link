@@ -1,5 +1,6 @@
 package com.navi.link;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -930,8 +931,16 @@ public class FloatingWindowManager {
             // 单击（非拖拽、非长按）→ 打开设置页
             if (!isDragging && !hasLongPressed && action == MotionEvent.ACTION_UP) {
                 Intent intent = new Intent(context, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                try {
+                    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        flags |= PendingIntent.FLAG_IMMUTABLE;
+                    }
+                    PendingIntent.getActivity(context, 0, intent, flags).send();
+                } catch (PendingIntent.CanceledException e) {
+                    context.startActivity(intent);
+                }
             }
 
             // 拖拽结束后保存位置
