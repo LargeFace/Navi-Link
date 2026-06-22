@@ -12,45 +12,46 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:paddingStart="5dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tv_cruise_speed"
+            <!-- 速度和单位容器 -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="0"
-                android:textColor="#FF0099FF"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="horizontal"
+                android:gravity="bottom">
+                <TextView
+                    android:id="@+id/tv_cruise_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:text="0"
+                    android:textColor="#FF0099FF"
+                    android:textSize="40sp"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_cruise_unit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
-                android:layout_marginBottom="5dp"
-                android:text="km/h"
-                android:textColor="#BBFFFFFF"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="@id/tv_cruise_speed"
-                app:layout_constraintStart_toEndOf="@id/tv_cruise_speed" />
+                <TextView
+                    android:id="@+id/tv_cruise_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="km/h"
+                    android:textColor="#BBFFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <View
                 android:id="@+id/cruise_divider"
                 android:layout_width="1dp"
                 android:layout_height="24dp"
                 android:layout_marginStart="8dp"
-                android:background="#33FFFFFF"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/tv_cruise_unit"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:background="#33FFFFFF" />
 
             <TextView
                 android:id="@+id/tv_cruise_road_name"
@@ -62,10 +63,16 @@
                 android:text="无名道路"
                 android:textColor="#FFFFFF"
                 android:textSize="24sp"
-                android:paddingEnd="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/cruise_divider"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:paddingEnd="8dp" />
+
+            <!-- 极简车道线组件 -->
+            <com.navi.link.LaneLineView
+                android:id="@+id/lane_line_view_min"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:visibility="gone" />
+
             <!-- 巡航红绿灯容器 -->
             <LinearLayout
                 android:id="@+id/ll_traffic_lights_container"
@@ -73,11 +80,40 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/tv_cruise_road_name"
-                app:layout_constraintTop_toTopOf="parent" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:visibility="gone" />
+
+            <!-- 巡航摄像头容器 -->
+            <LinearLayout
+                android:id="@+id/ll_min_cruise_camera_group"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_traffic_light_capsule"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingEnd="10dp"
+                android:visibility="gone">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/camera_shape"
+                    android:padding="9dp"
+                    android:src="@mipmap/camera_icon"
+                    app:tint="#000000" />
+                <TextView
+                    android:id="@+id/tv_min_cruise_camera_dist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="--"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

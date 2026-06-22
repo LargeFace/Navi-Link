@@ -35,6 +35,22 @@ public class LaneLineView extends LinearLayout {
 
     private String cachedDriveWayJson = null;
     private boolean isCompactMode = false; // true=wrap_content(≤3条), false=match_parent(>3条)
+    private boolean isSimpleMode = false;
+
+    public void setSimpleMode(boolean simpleMode) {
+        this.isSimpleMode = simpleMode;
+        if (simpleMode) {
+            setBackgroundResource(R.drawable.bg_mini_capsule);
+            int paddingH = dpToPx(0);
+            int paddingV = dpToPx(0);
+            setPadding(paddingH, paddingV, paddingH, paddingV);
+        } else {
+            setBackgroundResource(R.drawable.bg_lane_line);
+            int paddingH = dpToPx(8);
+            int paddingV = dpToPx(4);
+            setPadding(paddingH, paddingV, paddingH, paddingV);
+        }
+    }
 
     public LaneLineView(Context context) {
         super(context);
@@ -81,6 +97,9 @@ public class LaneLineView extends LinearLayout {
             int size = root.optInt("drive_way_size", 0);
             JSONArray infoArray = root.optJSONArray("drive_way_info");
             if (size <= 0 || infoArray == null || infoArray.length() == 0) {
+                if (getVisibility() == View.VISIBLE) {
+                    return; // 忽略此空包，保持上一包状态，避免闪烁
+                }
                 clear();
                 return;
             }
@@ -130,6 +149,23 @@ public class LaneLineView extends LinearLayout {
 
     private void rebuildLanes(ArrayList<JSONObject> lanes) {
         int targetCount = lanes.size();
+        if (isSimpleMode) {
+            removeAllViews();
+            float scale = FloatingWindowManager.getInstance().getScale();
+            int iconPx = Math.round(dpToPx(40) * scale);
+            int marginPx = Math.round(dpToPx(2) * scale);
+            for (int i = 0; i < targetCount; i++) {
+                ImageView iv = new ImageView(getContext());
+                iv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                LayoutParams ivLp = new LayoutParams(iconPx, iconPx);
+                ivLp.gravity = Gravity.CENTER_VERTICAL;
+                ivLp.setMargins(marginPx, 0, marginPx, 0);
+                addView(iv, ivLp);
+            }
+            updateLaneIcons(lanes);
+            return;
+        }
+
         boolean compact = targetCount <= 3;
         int totalViews = targetCount + (targetCount - 1);
 

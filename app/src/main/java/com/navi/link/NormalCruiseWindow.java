@@ -22,6 +22,9 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
     private View llCnCameraDist;
     private TextView tvCnCameraDist;
 
+    private boolean isOverspeedBlinking = false;
+    private int themeColor = Color.BLACK;
+
     public NormalCruiseWindow(Context context, View floatingView) {
         super(context, floatingView);
     }
@@ -53,6 +56,33 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
     public void updateCruiseInfo(int speed, String roadName, int cameraSpeed, int cameraDist) {
         if (tvCnSpeed != null) {
             tvCnSpeed.setText(String.valueOf(speed));
+            // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁 (受 overspeed_warning_enabled 开关控制)
+            boolean isOverspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
+            boolean overspeed = isOverspeedWarningEnabled && cameraSpeed > 0 && speed > cameraSpeed;
+            if (overspeed) {
+                tvCnSpeed.setTextColor(Color.RED);
+                ObjectAnimator animator = (ObjectAnimator) tvCnSpeed.getTag();
+                if (animator == null) {
+                    ObjectAnimator newAnimator = ObjectAnimator.ofFloat(tvCnSpeed, "alpha", 1f, 0.3f);
+                    newAnimator.setDuration(500);
+                    newAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                    newAnimator.setRepeatMode(ValueAnimator.REVERSE);
+                    newAnimator.start();
+                    tvCnSpeed.setTag(newAnimator);
+                    isOverspeedBlinking = true;
+                }
+            } else {
+                ObjectAnimator animator = (ObjectAnimator) tvCnSpeed.getTag();
+                if (animator != null) {
+                    animator.cancel();
+                    tvCnSpeed.setTag(null);
+                }
+                tvCnSpeed.setAlpha(1f);
+                isOverspeedBlinking = false;
+                // 恢复正常主题色
+                int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+                tvCnSpeed.setTextColor(accentColor);
+            }
         }
         if (tvCnRoadName != null && roadName != null) {
             tvCnRoadName.setText(roadName);
@@ -208,7 +238,12 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
     @Override
     public void updateLaneLines(String driveWayJson) {
         if (laneLineView != null) {
-            laneLineView.updateLanes(driveWayJson);
+            boolean laneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
+            if (laneEnabled) {
+                laneLineView.updateLanes(driveWayJson);
+            } else {
+                laneLineView.clear();
+            }
         }
     }
 
@@ -219,8 +254,9 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
 
     @Override
     public void applyThemeColor(int themeColor) {
+        this.themeColor = themeColor;
         int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-        if (tvCnSpeed != null) {
+        if (tvCnSpeed != null && !isOverspeedBlinking) {
             tvCnSpeed.setTextColor(accentColor);
         }
     }
@@ -256,5 +292,14 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
             }
             llCnTrafficLightsContainer.removeAllViews();
         }
+        if (tvCnSpeed != null) {
+            ObjectAnimator animator = (ObjectAnimator) tvCnSpeed.getTag();
+            if (animator != null) {
+                animator.cancel();
+                tvCnSpeed.setTag(null);
+            }
+            tvCnSpeed.setAlpha(1f);
+        }
+        isOverspeedBlinking = false;
     }
 }

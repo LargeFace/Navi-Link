@@ -90,10 +90,35 @@ public class FullNaviWindow extends BaseFloatingWindow {
             ivActionIconFull.setImageResource(turnIconRes);
         }
 
+        // 转向图标闪烁逻辑
+        if (ivActionIconFull != null) {
+            boolean shouldBlink = shouldBlinkTurnIcon(disNum, disUnit);
+            if (shouldBlink) {
+                ObjectAnimator animator = (ObjectAnimator) ivActionIconFull.getTag();
+                if (animator == null) {
+                    ObjectAnimator newAnimator = ObjectAnimator.ofFloat(ivActionIconFull, "alpha", 1f, 0.3f);
+                    newAnimator.setDuration(500);
+                    newAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                    newAnimator.setRepeatMode(ValueAnimator.REVERSE);
+                    newAnimator.start();
+                    ivActionIconFull.setTag(newAnimator);
+                }
+            } else {
+                ObjectAnimator animator = (ObjectAnimator) ivActionIconFull.getTag();
+                if (animator != null) {
+                    animator.cancel();
+                    ivActionIconFull.setTag(null);
+                }
+                ivActionIconFull.setAlpha(1f);
+            }
+        }
+
         if (tvFullSpeed != null) {
             tvFullSpeed.setText(String.valueOf(curSpeed));
-            // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁
-            boolean overspeed = limitedSpeed > 0 && curSpeed > limitedSpeed;
+            // 超速警告：限速优先用cameraSpeed，为0则用limitedSpeed
+            int limit = cameraSpeed > 0 ? cameraSpeed : limitedSpeed;
+            boolean isOverspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
+            boolean overspeed = isOverspeedWarningEnabled && limit > 0 && curSpeed > limit;
             if (overspeed) {
                 tvFullSpeed.setTextColor(Color.RED);
                 ObjectAnimator animator = (ObjectAnimator) tvFullSpeed.getTag();
@@ -234,7 +259,12 @@ public class FullNaviWindow extends BaseFloatingWindow {
     @Override
     public void updateLaneLines(String driveWayJson) {
         if (laneLineViewFull != null) {
-            laneLineViewFull.updateLanes(driveWayJson);
+            boolean laneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
+            if (laneEnabled) {
+                laneLineViewFull.updateLanes(driveWayJson);
+            } else {
+                laneLineViewFull.clear();
+            }
         }
     }
 
@@ -335,6 +365,14 @@ public class FullNaviWindow extends BaseFloatingWindow {
                 llTrafficLightGroupFull.setTag(null);
             }
             llTrafficLightGroupFull.setAlpha(1f);
+        }
+        if (ivActionIconFull != null) {
+            ObjectAnimator animator = (ObjectAnimator) ivActionIconFull.getTag();
+            if (animator != null) {
+                animator.cancel();
+                ivActionIconFull.setTag(null);
+            }
+            ivActionIconFull.setAlpha(1f);
         }
         isOverspeedBlinking = false;
     }

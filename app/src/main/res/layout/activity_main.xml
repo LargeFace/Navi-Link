@@ -807,7 +807,7 @@
                                 android:layout_weight="1">
 
                                 <TextView
-                                    android:text="常规导航车道线"
+                                    android:text="巡航/导航车道线"
                                     android:textSize="15sp"
                                     android:textColor="#FFFFFFFF"
                                     android:layout_width="match_parent"
@@ -883,6 +883,122 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/cb_avoid_foreground_enabled"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="false"
+                                android:focusable="false" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="16dp"
+                        android:background="#1AFFFFFF" />
+
+                    <!-- Option 4: Overspeed Warning Switch Row -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_overspeed_warning_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="12dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                android:orientation="vertical"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:text="超速红色提醒"
+                                    android:textSize="15sp"
+                                    android:textColor="#FFFFFFFF"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content" />
+
+                                <TextView
+                                    android:id="@+id/tv_overspeed_warning_status"
+                                    android:text="超速时车速红色报警并闪烁"
+                                    android:textSize="12sp"
+                                    android:textColor="#FF888888"
+                                    android:layout_marginTop="2dp"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/cb_overspeed_warning_enabled"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="false"
+                                android:focusable="false" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="16dp"
+                        android:background="#1AFFFFFF" />
+
+                    <!-- Option 5: Minimal Camera Switch Row -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_minimal_camera_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="12dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                android:orientation="vertical"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:text="灵动岛摄像头"
+                                    android:textSize="15sp"
+                                    android:textColor="#FFFFFFFF"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content" />
+
+                                <TextView
+                                    android:id="@+id/tv_minimal_camera_status"
+                                    android:text="灵动岛布局显示摄像头距离"
+                                    android:textSize="12sp"
+                                    android:textColor="#FF888888"
+                                    android:layout_marginTop="2dp"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/cb_minimal_camera_enabled"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:clickable="false"

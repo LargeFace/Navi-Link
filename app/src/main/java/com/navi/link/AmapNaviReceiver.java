@@ -32,6 +32,8 @@ public class AmapNaviReceiver extends BroadcastReceiver {
             Log.d(TAG, "==========================================================");
         }
         if (keyType == 60073) {
+            // 红绿灯数据也视为有活动数据，重置 5秒 看门狗
+            manager.resetWatchdog();
             // 红绿灯数据
             handleTrafficLight(intent, manager);
             if (manager.getCurrentMode() == FloatingWindowManager.MODE_NAVI) {

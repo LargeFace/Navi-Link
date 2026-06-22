@@ -477,7 +477,8 @@ public class FloatingWindowManager {
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT, layoutType,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 -3);
 
         layoutParams.gravity = Gravity.TOP | Gravity.START;
@@ -963,6 +964,7 @@ public class FloatingWindowManager {
         cachedDriveWayJson = driveWayJson;
         if (isShowing && floatingView != null && activeWindow != null) {
             activeWindow.updateLaneLines(driveWayJson);
+            remeasureWindow();
         }
     }
 
@@ -1022,6 +1024,7 @@ public class FloatingWindowManager {
                         endPoiName, totalLightNum, remainLightNum, curRoadName, carDirection
                 );
             }
+            remeasureWindow();
         }
     }
 
@@ -1051,6 +1054,7 @@ public class FloatingWindowManager {
         if (activeWindow != null) {
             activeWindow.updateTrafficLight(status, dir, countdown);
         }
+        remeasureWindow();
 
         handler.removeCallbacks(trafficLightTimeoutRunnable);
         handler.postDelayed(trafficLightTimeoutRunnable, LIGHT_HIDE_TIMEOUT_MS);

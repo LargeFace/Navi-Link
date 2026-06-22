@@ -78,6 +78,22 @@ public abstract class BaseFloatingWindow {
         return "现在".equals(disNum);
     }
 
+    protected boolean shouldBlinkTurnIcon(String disNum, String disUnit) {
+        if (disNum == null || disNum.isEmpty()) return false;
+        if ("现在".equals(disNum)) return true;
+        try {
+            String cleanNum = disNum.replaceAll("[^0-9.]", "");
+            if (cleanNum.isEmpty()) return false;
+            float val = Float.parseFloat(cleanNum);
+            if (disUnit != null && (disUnit.contains("公里") || disUnit.contains("km") || disUnit.contains("KM"))) {
+                val = val * 1000;
+            }
+            return val < 500;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     protected String formatEta(String eta) {
         if (eta == null || eta.isEmpty()) return "";
         String result = eta;

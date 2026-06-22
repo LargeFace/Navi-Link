@@ -99,6 +99,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvSys;
     private TextView tvStyle;
     private TextView tvOperation;
+    private SwitchCompat cbOverspeedWarningEnabled;
+    private TextView tvOverspeedWarningStatus;
+    private MaterialCardView cardOverspeedWarningToggle;
+    private SwitchCompat cbMinimalCameraEnabled;
+    private TextView tvMinimalCameraStatus;
+    private MaterialCardView cardMinimalCameraToggle;
 
 
     private boolean isMinimalStyle = false;
@@ -110,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean cruiseEnabled = true;
     private boolean normalLaneEnabled = false;
     private boolean avoidForegroundEnabled = false;
+    private boolean overspeedWarningEnabled = true;
+    private boolean minimalCameraEnabled = false;
 
     private int themeColor = 0xFF4FC3F7;
 
@@ -165,6 +173,12 @@ public class MainActivity extends AppCompatActivity {
         cbAvoidForegroundEnabled = findViewById(R.id.cb_avoid_foreground_enabled);
         tvAvoidForegroundStatus = findViewById(R.id.tv_avoid_foreground_status);
         cardAvoidForegroundToggle = findViewById(R.id.card_avoid_foreground_toggle);
+        cbOverspeedWarningEnabled = findViewById(R.id.cb_overspeed_warning_enabled);
+        tvOverspeedWarningStatus = findViewById(R.id.tv_overspeed_warning_status);
+        cardOverspeedWarningToggle = findViewById(R.id.card_overspeed_warning_toggle);
+        cbMinimalCameraEnabled = findViewById(R.id.cb_minimal_camera_enabled);
+        tvMinimalCameraStatus = findViewById(R.id.tv_minimal_camera_status);
+        cardMinimalCameraToggle = findViewById(R.id.card_minimal_camera_toggle);
         llThemeColors = findViewById(R.id.ll_theme_colors);
         tvSys = findViewById(R.id.tv_sys);
         tvStyle = findViewById(R.id.tv_style);
@@ -201,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
         cruiseEnabled = sp.getBoolean("cruise_enabled", true);
         normalLaneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
         avoidForegroundEnabled = sp.getBoolean("hide_on_amap_foreground", false);
+        overspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
+        minimalCameraEnabled = sp.getBoolean("minimal_camera_enabled", false);
  
         updateSeekBarToCurrentScale();
         
@@ -215,6 +231,18 @@ public class MainActivity extends AppCompatActivity {
         }
         if (tvAvoidForegroundStatus != null) {
             tvAvoidForegroundStatus.setText(avoidForegroundEnabled ? "高德前台时隐藏悬浮窗" : "前台正常显示浮窗");
+        }
+        if (cbOverspeedWarningEnabled != null) {
+            cbOverspeedWarningEnabled.setChecked(overspeedWarningEnabled);
+        }
+        if (tvOverspeedWarningStatus != null) {
+            tvOverspeedWarningStatus.setText(overspeedWarningEnabled ? "超速时车速红色报警并闪烁" : "已关闭超速红色提醒");
+        }
+        if (cbMinimalCameraEnabled != null) {
+            cbMinimalCameraEnabled.setChecked(minimalCameraEnabled);
+        }
+        if (tvMinimalCameraStatus != null) {
+            tvMinimalCameraStatus.setText(minimalCameraEnabled ? "灵动岛布局显示摄像头距离" : "已关闭灵动岛摄像头显示");
         }
 
         applyThemeToViews();
@@ -358,6 +386,8 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean("cruise_enabled", cruiseEnabled)
                 .putBoolean("normal_navi_lane_enabled", normalLaneEnabled)
                 .putBoolean("hide_on_amap_foreground", avoidForegroundEnabled)
+                .putBoolean("overspeed_warning_enabled", overspeedWarningEnabled)
+                .putBoolean("minimal_camera_enabled", minimalCameraEnabled)
                 .apply();
     }
 
@@ -452,6 +482,8 @@ public class MainActivity extends AppCompatActivity {
         updateSwitchTheme(cbCruiseEnabled, accentColor);
         updateSwitchTheme(cbNormalLaneEnabled, accentColor);
         updateSwitchTheme(cbAvoidForegroundEnabled, accentColor);
+        updateSwitchTheme(cbOverspeedWarningEnabled, accentColor);
+        updateSwitchTheme(cbMinimalCameraEnabled, accentColor);
 
         // 更新 SeekBar 与文本颜色
         sbScale.setProgressTintList(accentColorStateList);
@@ -587,6 +619,46 @@ public class MainActivity extends AppCompatActivity {
         cbAvoidForegroundEnabled.setOnCheckedChangeListener(avoidForegroundListener);
         if (cardAvoidForegroundToggle != null) {
             cardAvoidForegroundToggle.setOnClickListener(v -> cbAvoidForegroundEnabled.toggle());
+        }
+
+        cbOverspeedWarningEnabled.setChecked(overspeedWarningEnabled);
+        if (tvOverspeedWarningStatus != null) {
+            tvOverspeedWarningStatus.setText(overspeedWarningEnabled ? "超速时车速红色报警并闪烁" : "已关闭超速红色提醒");
+        }
+        CompoundButton.OnCheckedChangeListener overspeedWarningListener = (buttonView, isChecked) -> {
+            overspeedWarningEnabled = isChecked;
+            savePreferences();
+            if (tvOverspeedWarningStatus != null) {
+                tvOverspeedWarningStatus.setText(isChecked ? "超速时车速红色报警并闪烁" : "已关闭超速红色提醒");
+            }
+            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+            if (fwm != null) {
+                fwm.refreshWindow();
+            }
+        };
+        cbOverspeedWarningEnabled.setOnCheckedChangeListener(overspeedWarningListener);
+        if (cardOverspeedWarningToggle != null) {
+            cardOverspeedWarningToggle.setOnClickListener(v -> cbOverspeedWarningEnabled.toggle());
+        }
+
+        cbMinimalCameraEnabled.setChecked(minimalCameraEnabled);
+        if (tvMinimalCameraStatus != null) {
+            tvMinimalCameraStatus.setText(minimalCameraEnabled ? "灵动岛布局显示摄像头距离" : "已关闭灵动岛摄像头显示");
+        }
+        CompoundButton.OnCheckedChangeListener minimalCameraListener = (buttonView, isChecked) -> {
+            minimalCameraEnabled = isChecked;
+            savePreferences();
+            if (tvMinimalCameraStatus != null) {
+                tvMinimalCameraStatus.setText(isChecked ? "灵动岛布局显示摄像头距离" : "已关闭灵动岛摄像头显示");
+            }
+            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+            if (fwm != null) {
+                fwm.refreshWindow();
+            }
+        };
+        cbMinimalCameraEnabled.setOnCheckedChangeListener(minimalCameraListener);
+        if (cardMinimalCameraToggle != null) {
+            cardMinimalCameraToggle.setOnClickListener(v -> cbMinimalCameraEnabled.toggle());
         }
 
         sbScale.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

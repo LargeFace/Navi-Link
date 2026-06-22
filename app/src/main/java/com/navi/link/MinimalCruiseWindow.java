@@ -18,6 +18,12 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
     private TextView tvCruiseSpeed;
     private TextView tvCruiseRoadName;
     private LinearLayout llTrafficLightsContainer;
+    private View llMinCruiseCameraGroup;
+    private TextView tvMinCruiseCameraDist;
+    private LaneLineView laneLineViewMin;
+
+    private int themeColor = 0xFF4FC3F7;
+    private boolean isOverspeedBlinking = false;
 
     public MinimalCruiseWindow(Context context, View floatingView) {
         super(context, floatingView);
@@ -28,6 +34,13 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
         tvCruiseSpeed = floatingView.findViewById(R.id.tv_cruise_speed);
         tvCruiseRoadName = floatingView.findViewById(R.id.tv_cruise_road_name);
         llTrafficLightsContainer = floatingView.findViewById(R.id.ll_traffic_lights_container);
+        llMinCruiseCameraGroup = floatingView.findViewById(R.id.ll_min_cruise_camera_group);
+        tvMinCruiseCameraDist = floatingView.findViewById(R.id.tv_min_cruise_camera_dist);
+        laneLineViewMin = floatingView.findViewById(R.id.lane_line_view_min);
+        if (laneLineViewMin != null) {
+            laneLineViewMin.setSimpleMode(true);
+        }
+        themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
     }
 
     @Override
@@ -46,9 +59,47 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
     public void updateCruiseInfo(int speed, String roadName, int cameraSpeed, int cameraDist) {
         if (tvCruiseSpeed != null) {
             tvCruiseSpeed.setText(String.valueOf(speed));
+            // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁
+            boolean isOverspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
+            boolean overspeed = isOverspeedWarningEnabled && cameraSpeed > 0 && speed > cameraSpeed;
+            if (overspeed) {
+                tvCruiseSpeed.setTextColor(Color.RED);
+                ObjectAnimator animator = (ObjectAnimator) tvCruiseSpeed.getTag();
+                if (animator == null) {
+                    ObjectAnimator newAnimator = ObjectAnimator.ofFloat(tvCruiseSpeed, "alpha", 1f, 0.3f);
+                    newAnimator.setDuration(500);
+                    newAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                    newAnimator.setRepeatMode(ValueAnimator.REVERSE);
+                    newAnimator.start();
+                    tvCruiseSpeed.setTag(newAnimator);
+                    isOverspeedBlinking = true;
+                }
+            } else {
+                ObjectAnimator animator = (ObjectAnimator) tvCruiseSpeed.getTag();
+                if (animator != null) {
+                    animator.cancel();
+                    tvCruiseSpeed.setTag(null);
+                }
+                tvCruiseSpeed.setAlpha(1f);
+                isOverspeedBlinking = false;
+                // 恢复正常主题色
+                int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+                tvCruiseSpeed.setTextColor(accentColor);
+            }
         }
         if (tvCruiseRoadName != null && roadName != null) {
             tvCruiseRoadName.setText(roadName);
+        }
+        if (llMinCruiseCameraGroup != null) {
+            boolean minimalCameraEnabled = sp.getBoolean("minimal_camera_enabled", false);
+            if (minimalCameraEnabled && cameraDist > 0) {
+                if (tvMinCruiseCameraDist != null) {
+                    tvMinCruiseCameraDist.setText(cameraDist + "米");
+                }
+                llMinCruiseCameraGroup.setVisibility(View.VISIBLE);
+            } else {
+                llMinCruiseCameraGroup.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -169,7 +220,14 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
 
     @Override
     public void updateLaneLines(String driveWayJson) {
-        // 极简巡航无车道线
+        if (laneLineViewMin != null) {
+            boolean laneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
+            if (laneEnabled) {
+                laneLineViewMin.updateLanes(driveWayJson);
+            } else {
+                laneLineViewMin.clear();
+            }
+        }
     }
 
     @Override
@@ -179,8 +237,9 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
 
     @Override
     public void applyThemeColor(int themeColor) {
+        this.themeColor = themeColor;
         int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-        if (tvCruiseSpeed != null) {
+        if (tvCruiseSpeed != null && !isOverspeedBlinking) {
             tvCruiseSpeed.setTextColor(accentColor);
         }
     }
@@ -191,12 +250,18 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
         if (tvCruiseRoadName != null) {
             tvCruiseRoadName.setTextColor(textSecondary);
         }
+        if (tvMinCruiseCameraDist != null) {
+            tvMinCruiseCameraDist.setTextColor(isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
+        }
     }
 
     @Override
     public void resetToDefaultTextColors() {
         if (tvCruiseRoadName != null) {
             tvCruiseRoadName.setTextColor(TEXT_PRIMARY_DARK);
+        }
+        if (tvMinCruiseCameraDist != null) {
+            tvMinCruiseCameraDist.setTextColor(TEXT_PRIMARY_DARK);
         }
     }
 
@@ -216,5 +281,14 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
             }
             llTrafficLightsContainer.removeAllViews();
         }
+        if (tvCruiseSpeed != null) {
+            ObjectAnimator animator = (ObjectAnimator) tvCruiseSpeed.getTag();
+            if (animator != null) {
+                animator.cancel();
+                tvCruiseSpeed.setTag(null);
+            }
+            tvCruiseSpeed.setAlpha(1f);
+        }
+        isOverspeedBlinking = false;
     }
 }

@@ -83,9 +83,30 @@ public class NormalNaviWindow extends BaseFloatingWindow {
             String endPoiName, int totalLightNum, int remainLightNum,
             String curRoadName, int carDirection
     ) {
-        int turnIconRes = getTurnIconRes(icon);
-        if (ivTurnIcon != null && turnIconRes != 0) {
-            ivTurnIcon.setImageResource(turnIconRes);
+        if (ivTurnIcon != null) {
+            int turnIconRes = getTurnIconRes(icon);
+            if (turnIconRes != 0) {
+                ivTurnIcon.setImageResource(turnIconRes);
+            }
+            boolean shouldBlink = shouldBlinkTurnIcon(disNum, disUnit);
+            if (shouldBlink) {
+                ObjectAnimator animator = (ObjectAnimator) ivTurnIcon.getTag();
+                if (animator == null) {
+                    ObjectAnimator newAnimator = ObjectAnimator.ofFloat(ivTurnIcon, "alpha", 1f, 0.3f);
+                    newAnimator.setDuration(500);
+                    newAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                    newAnimator.setRepeatMode(ValueAnimator.REVERSE);
+                    newAnimator.start();
+                    ivTurnIcon.setTag(newAnimator);
+                }
+            } else {
+                ObjectAnimator animator = (ObjectAnimator) ivTurnIcon.getTag();
+                if (animator != null) {
+                    animator.cancel();
+                    ivTurnIcon.setTag(null);
+                }
+                ivTurnIcon.setAlpha(1f);
+            }
         }
         if (tvDistanceNum != null) {
             tvDistanceNum.setText(disNum);
@@ -313,6 +334,14 @@ public class NormalNaviWindow extends BaseFloatingWindow {
                 llTrafficLightGroup.setTag(null);
             }
             llTrafficLightGroup.setAlpha(1f);
+        }
+        if (ivTurnIcon != null) {
+            ObjectAnimator animator = (ObjectAnimator) ivTurnIcon.getTag();
+            if (animator != null) {
+                animator.cancel();
+                ivTurnIcon.setTag(null);
+            }
+            ivTurnIcon.setAlpha(1f);
         }
     }
 }

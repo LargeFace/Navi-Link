@@ -22,8 +22,14 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
     private ImageView ivLightArrowMin;
     private TextView tvLightTimeMin;
 
+    private View llMinNaviCameraGroup;
+    private TextView tvMinNaviCameraDist;
+    private int mCameraDist = 0;
+    private int mTrafficLightCountdown = 0;
+
     private int themeColor = 0xFF4FC3F7;
     private boolean isOverspeedBlinking = false;
+    private LaneLineView laneLineViewMin;
 
     public MinimalNaviWindow(Context context, View floatingView) {
         super(context, floatingView);
@@ -45,6 +51,14 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
             tvLightTimeMin = llTrafficLightGroupMin.findViewById(R.id.tv_light_time);
         }
 
+        llMinNaviCameraGroup = floatingView.findViewById(R.id.ll_min_navi_camera_group);
+        tvMinNaviCameraDist = floatingView.findViewById(R.id.tv_min_navi_camera_dist);
+
+        laneLineViewMin = floatingView.findViewById(R.id.lane_line_view_min);
+        if (laneLineViewMin != null) {
+            laneLineViewMin.setSimpleMode(true);
+        }
+
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
     }
 
@@ -57,14 +71,37 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
             String endPoiName, int totalLightNum, int remainLightNum,
             String curRoadName, int carDirection
     ) {
-        int turnIconRes = getTurnIconRes(icon);
-        if (ivActionIconMin != null && turnIconRes != 0) {
-            ivActionIconMin.setImageResource(turnIconRes);
+        if (ivActionIconMin != null) {
+            int turnIconRes = getTurnIconRes(icon);
+            if (turnIconRes != 0) {
+                ivActionIconMin.setImageResource(turnIconRes);
+            }
+            boolean shouldBlink = shouldBlinkTurnIcon(disNum, disUnit);
+            if (shouldBlink) {
+                ObjectAnimator animator = (ObjectAnimator) ivActionIconMin.getTag();
+                if (animator == null) {
+                    ObjectAnimator newAnimator = ObjectAnimator.ofFloat(ivActionIconMin, "alpha", 1f, 0.3f);
+                    newAnimator.setDuration(500);
+                    newAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                    newAnimator.setRepeatMode(ValueAnimator.REVERSE);
+                    newAnimator.start();
+                    ivActionIconMin.setTag(newAnimator);
+                }
+            } else {
+                ObjectAnimator animator = (ObjectAnimator) ivActionIconMin.getTag();
+                if (animator != null) {
+                    animator.cancel();
+                    ivActionIconMin.setTag(null);
+                }
+                ivActionIconMin.setAlpha(1f);
+            }
         }
         if (tvMinSpeed != null) {
             tvMinSpeed.setText(String.valueOf(curSpeed));
-            // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁
-            boolean overspeed = limitedSpeed > 0 && curSpeed > limitedSpeed;
+            // 超速警告：限速优先用cameraSpeed，为0则用limitedSpeed
+            int limit = cameraSpeed > 0 ? cameraSpeed : limitedSpeed;
+            boolean isOverspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
+            boolean overspeed = isOverspeedWarningEnabled && limit > 0 && curSpeed > limit;
             if (overspeed) {
                 tvMinSpeed.setTextColor(Color.RED);
                 ObjectAnimator animator = (ObjectAnimator) tvMinSpeed.getTag();
@@ -99,6 +136,8 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         if (tvRoadNameMin != null) {
             tvRoadNameMin.setText(roadName);
         }
+        mCameraDist = cameraDist;
+        updateCameraDistVisibility();
     }
 
     @Override
@@ -108,7 +147,10 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
 
     @Override
     public void updateTrafficLight(int status, int dir, int countdown) {
-        if (llTrafficLightGroupMin == null) return;
+        mTrafficLightCountdown = countdown;
+        if (llTrafficLightGroupMin == null) {
+            return;
+        }
         if (countdown <= 0) {
             llTrafficLightGroupMin.setVisibility(View.GONE);
             ObjectAnimator animator = (ObjectAnimator) llTrafficLightGroupMin.getTag();
@@ -150,9 +192,29 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         }
     }
 
+    private void updateCameraDistVisibility() {
+        if (llMinNaviCameraGroup == null) return;
+        boolean minimalCameraEnabled = sp.getBoolean("minimal_camera_enabled", false);
+        if (minimalCameraEnabled && mCameraDist > 0) {
+            if (tvMinNaviCameraDist != null) {
+                tvMinNaviCameraDist.setText(mCameraDist + "米");
+            }
+            llMinNaviCameraGroup.setVisibility(View.VISIBLE);
+        } else {
+            llMinNaviCameraGroup.setVisibility(View.GONE);
+        }
+    }
+
     @Override
     public void updateLaneLines(String driveWayJson) {
-        // 极简导航无车道线
+        if (laneLineViewMin != null) {
+            boolean laneEnabled = sp.getBoolean("normal_navi_lane_enabled", false);
+            if (laneEnabled) {
+                laneLineViewMin.updateLanes(driveWayJson);
+            } else {
+                laneLineViewMin.clear();
+            }
+        }
     }
 
     @Override
@@ -179,6 +241,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(textSecondary);
         if (ivActionIconMin != null) ivActionIconMin.setColorFilter(textPrimary);
         if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(textPrimary);
+        if (tvMinNaviCameraDist != null) tvMinNaviCameraDist.setTextColor(textPrimary);
     }
 
     @Override
@@ -188,6 +251,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(TEXT_SECONDARY_DARK);
         if (ivActionIconMin != null) ivActionIconMin.clearColorFilter();
         if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvMinNaviCameraDist != null) tvMinNaviCameraDist.setTextColor(TEXT_PRIMARY_DARK);
     }
 
     @Override
@@ -208,6 +272,14 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
                 tvMinSpeed.setTag(null);
             }
             tvMinSpeed.setAlpha(1f);
+        }
+        if (ivActionIconMin != null) {
+            ObjectAnimator animator = (ObjectAnimator) ivActionIconMin.getTag();
+            if (animator != null) {
+                animator.cancel();
+                ivActionIconMin.setTag(null);
+            }
+            ivActionIconMin.setAlpha(1f);
         }
         isOverspeedBlinking = false;
     }
