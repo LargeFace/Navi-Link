@@ -118,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvClusterDisplaySelectStatus;
     private TextView btnAdjustClusterPos;
 
+    private MaterialCardView cardAutoStartToggle;
+    private SwitchCompat cbAutoStartEnabled;
+    private TextView tvAutoStartStatus;
+
     private boolean isMinimalStyle = false;
     private int styleMode = 0;
     private boolean isServiceOnlyMode = false;
@@ -131,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean minimalCameraEnabled = false;
     private boolean clusterMirrorEnabled = false;
     private int clusterDisplayId = -1;
+    private boolean autoStartEnabled = false;
 
     private int themeColor = 0xFF4FC3F7;
 
@@ -198,6 +203,9 @@ public class MainActivity extends AppCompatActivity {
         cardClusterDisplaySelect = findViewById(R.id.card_cluster_display_select);
         tvClusterDisplaySelectStatus = findViewById(R.id.tv_cluster_display_select_status);
         btnAdjustClusterPos = findViewById(R.id.btn_adjust_cluster_pos);
+        cardAutoStartToggle = findViewById(R.id.card_auto_start_toggle);
+        cbAutoStartEnabled = findViewById(R.id.cb_auto_start_enabled);
+        tvAutoStartStatus = findViewById(R.id.tv_auto_start_status);
         llThemeColors = findViewById(R.id.ll_theme_colors);
         tvSys = findViewById(R.id.tv_sys);
         tvStyle = findViewById(R.id.tv_style);
@@ -238,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         minimalCameraEnabled = sp.getBoolean("minimal_camera_enabled", false);
         clusterMirrorEnabled = sp.getBoolean("cluster_mirror_enabled", false);
         clusterDisplayId = sp.getInt("cluster_display_id", -1);
+        autoStartEnabled = sp.getBoolean("auto_start", false);
  
         updateSeekBarToCurrentScale();
         
@@ -270,6 +279,12 @@ public class MainActivity extends AppCompatActivity {
         }
         if (tvClusterMirrorStatus != null) {
             tvClusterMirrorStatus.setText(clusterMirrorEnabled ? "已启用副屏镜像投屏" : "已禁用副屏投屏");
+        }
+        if (cbAutoStartEnabled != null) {
+            cbAutoStartEnabled.setChecked(autoStartEnabled);
+        }
+        if (tvAutoStartStatus != null) {
+            tvAutoStartStatus.setText(autoStartEnabled ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
         }
         if (btnAdjustClusterPos != null) {
             btnAdjustClusterPos.setVisibility(clusterMirrorEnabled ? View.VISIBLE : View.GONE);
@@ -421,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean("minimal_camera_enabled", minimalCameraEnabled)
                 .putBoolean("cluster_mirror_enabled", clusterMirrorEnabled)
                 .putInt("cluster_display_id", clusterDisplayId)
+                .putBoolean("auto_start", autoStartEnabled)
                 .apply();
     }
 
@@ -518,7 +534,8 @@ public class MainActivity extends AppCompatActivity {
         updateSwitchTheme(cbOverspeedWarningEnabled, accentColor);
         updateSwitchTheme(cbMinimalCameraEnabled, accentColor);
         updateSwitchTheme(cbClusterMirrorEnabled, accentColor);
-
+        updateSwitchTheme(cbAutoStartEnabled, accentColor);
+ 
         // 更新 SeekBar 与文本颜色
         sbScale.setProgressTintList(accentColorStateList);
         sbScale.setThumbTintList(accentColorStateList);
@@ -720,6 +737,22 @@ public class MainActivity extends AppCompatActivity {
         cbClusterMirrorEnabled.setOnCheckedChangeListener(clusterMirrorListener);
         if (cardClusterMirrorToggle != null) {
             cardClusterMirrorToggle.setOnClickListener(v -> cbClusterMirrorEnabled.toggle());
+        }
+
+        cbAutoStartEnabled.setChecked(autoStartEnabled);
+        if (tvAutoStartStatus != null) {
+            tvAutoStartStatus.setText(autoStartEnabled ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
+        }
+        CompoundButton.OnCheckedChangeListener autoStartListener = (buttonView, isChecked) -> {
+            autoStartEnabled = isChecked;
+            savePreferences();
+            if (tvAutoStartStatus != null) {
+                tvAutoStartStatus.setText(isChecked ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
+            }
+        };
+        cbAutoStartEnabled.setOnCheckedChangeListener(autoStartListener);
+        if (cardAutoStartToggle != null) {
+            cardAutoStartToggle.setOnClickListener(v -> cbAutoStartEnabled.toggle());
         }
 
         if (cardClusterDisplaySelect != null) {
