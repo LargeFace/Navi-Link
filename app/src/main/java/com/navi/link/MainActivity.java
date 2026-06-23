@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
     private MaterialCardView cardClusterDisplaySelect;
     private TextView tvClusterDisplaySelectStatus;
     private TextView btnAdjustClusterPos;
+    private MaterialCardView cardHideMainWhenClusterActive;
+    private SwitchCompat cbHideMainWhenClusterActive;
+    private TextView tvHideMainWhenClusterActiveStatus;
 
     private MaterialCardView cardAutoStartToggle;
     private SwitchCompat cbAutoStartEnabled;
@@ -135,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean minimalCameraEnabled = false;
     private boolean clusterMirrorEnabled = false;
     private int clusterDisplayId = -1;
+    private boolean hideMainWhenClusterActive = false;
     private boolean autoStartEnabled = false;
 
     private int themeColor = 0xFF4FC3F7;
@@ -203,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
         cardClusterDisplaySelect = findViewById(R.id.card_cluster_display_select);
         tvClusterDisplaySelectStatus = findViewById(R.id.tv_cluster_display_select_status);
         btnAdjustClusterPos = findViewById(R.id.btn_adjust_cluster_pos);
+        cardHideMainWhenClusterActive = findViewById(R.id.card_hide_main_when_cluster_active);
+        cbHideMainWhenClusterActive = findViewById(R.id.cb_hide_main_when_cluster_active);
+        tvHideMainWhenClusterActiveStatus = findViewById(R.id.tv_hide_main_when_cluster_active_status);
         cardAutoStartToggle = findViewById(R.id.card_auto_start_toggle);
         cbAutoStartEnabled = findViewById(R.id.cb_auto_start_enabled);
         tvAutoStartStatus = findViewById(R.id.tv_auto_start_status);
@@ -246,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
         minimalCameraEnabled = sp.getBoolean("minimal_camera_enabled", false);
         clusterMirrorEnabled = sp.getBoolean("cluster_mirror_enabled", false);
         clusterDisplayId = sp.getInt("cluster_display_id", -1);
+        hideMainWhenClusterActive = sp.getBoolean("hide_main_when_cluster_active", false);
         autoStartEnabled = sp.getBoolean("auto_start", false);
  
         updateSeekBarToCurrentScale();
@@ -436,6 +444,7 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean("minimal_camera_enabled", minimalCameraEnabled)
                 .putBoolean("cluster_mirror_enabled", clusterMirrorEnabled)
                 .putInt("cluster_display_id", clusterDisplayId)
+                .putBoolean("hide_main_when_cluster_active", hideMainWhenClusterActive)
                 .putBoolean("auto_start", autoStartEnabled)
                 .apply();
     }
@@ -534,6 +543,7 @@ public class MainActivity extends AppCompatActivity {
         updateSwitchTheme(cbOverspeedWarningEnabled, accentColor);
         updateSwitchTheme(cbMinimalCameraEnabled, accentColor);
         updateSwitchTheme(cbClusterMirrorEnabled, accentColor);
+        updateSwitchTheme(cbHideMainWhenClusterActive, accentColor);
         updateSwitchTheme(cbAutoStartEnabled, accentColor);
  
         // 更新 SeekBar 与文本颜色
@@ -737,6 +747,26 @@ public class MainActivity extends AppCompatActivity {
         cbClusterMirrorEnabled.setOnCheckedChangeListener(clusterMirrorListener);
         if (cardClusterMirrorToggle != null) {
             cardClusterMirrorToggle.setOnClickListener(v -> cbClusterMirrorEnabled.toggle());
+        }
+
+        cbHideMainWhenClusterActive.setChecked(hideMainWhenClusterActive);
+        if (tvHideMainWhenClusterActiveStatus != null) {
+            tvHideMainWhenClusterActiveStatus.setText(hideMainWhenClusterActive ? "副屏成功显示后自动隐藏主屏悬浮窗" : "已关闭该功能，主副屏同时显示");
+        }
+        CompoundButton.OnCheckedChangeListener hideMainListener = (buttonView, isChecked) -> {
+            hideMainWhenClusterActive = isChecked;
+            savePreferences();
+            if (tvHideMainWhenClusterActiveStatus != null) {
+                tvHideMainWhenClusterActiveStatus.setText(isChecked ? "副屏成功显示后自动隐藏主屏悬浮窗" : "已关闭该功能，主副屏同时显示");
+            }
+            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+            if (fwm != null) {
+                fwm.updateFloatingWindowVisibility();
+            }
+        };
+        cbHideMainWhenClusterActive.setOnCheckedChangeListener(hideMainListener);
+        if (cardHideMainWhenClusterActive != null) {
+            cardHideMainWhenClusterActive.setOnClickListener(v -> cbHideMainWhenClusterActive.toggle());
         }
 
         cbAutoStartEnabled.setChecked(autoStartEnabled);

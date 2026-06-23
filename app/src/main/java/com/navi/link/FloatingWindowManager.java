@@ -886,10 +886,14 @@ public class FloatingWindowManager {
     public void updateFloatingWindowVisibility() {
         SharedPreferences sp = context.getSharedPreferences("floating_config", Context.MODE_PRIVATE);
         boolean hideOnForeground = sp.getBoolean("hide_on_amap_foreground", false);
+        boolean hideMainWhenClusterActive = sp.getBoolean("hide_main_when_cluster_active", false);
 
-        boolean shouldHide = hideOnForeground && isAmapForeground;
+        boolean isClusterActive = isClusterMirrorEnabled && clusterFloatingView != null;
+        boolean shouldHideMain = (hideOnForeground && isAmapForeground)
+                || (hideMainWhenClusterActive && isClusterActive);
+
         if (floatingView != null) {
-            if (shouldHide) {
+            if (shouldHideMain) {
                 floatingView.setVisibility(View.GONE);
             } else {
                 if (currentMode == MODE_NAVI || (isCruiseEnabled() && hasActiveData)) {
@@ -1343,7 +1347,7 @@ public class FloatingWindowManager {
             }
         }
 
-        updateClusterFloatingWindowVisibility();
+        updateFloatingWindowVisibility();
     }
 
     private void dismissClusterMirror() {
@@ -1359,6 +1363,7 @@ public class FloatingWindowManager {
             }
             clusterFloatingView = null;
             clusterContext = null;
+            updateFloatingWindowVisibility();
         }
     }
 
@@ -1457,6 +1462,18 @@ public class FloatingWindowManager {
     private void applyThemeColorForCluster() {
         if (clusterActiveWindow != null) {
             clusterActiveWindow.applyThemeColor(themeColor);
+        }
+        if (clusterFloatingView != null) {
+            applyThemeColorToView(clusterFloatingView, clusterScaleTarget);
+        }
+        if (backgroundMode == 2) {
+            if (clusterActiveWindow != null) {
+                clusterActiveWindow.applyDayNightTextColors(isNightMode);
+            }
+        } else {
+            if (clusterActiveWindow != null) {
+                clusterActiveWindow.resetToDefaultTextColors();
+            }
         }
     }
 
