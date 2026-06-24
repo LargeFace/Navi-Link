@@ -493,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
             cbAutoStartEnabled.setChecked(autoStartEnabled);
         }
         if (tvAutoStartStatus != null) {
-            tvAutoStartStatus.setText(autoStartEnabled ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
+            tvAutoStartStatus.setText(autoStartEnabled ? "已启用开机自启（如未生效，请在车机设置中允许本应用的自启动权限）" : "已关闭开机自启功能");
         }
         if (btnAdjustClusterPos != null) {
             btnAdjustClusterPos.setVisibility(clusterMirrorEnabled ? View.VISIBLE : View.GONE);
@@ -1061,13 +1061,13 @@ public class MainActivity extends AppCompatActivity {
 
         cbAutoStartEnabled.setChecked(autoStartEnabled);
         if (tvAutoStartStatus != null) {
-            tvAutoStartStatus.setText(autoStartEnabled ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
+            tvAutoStartStatus.setText(autoStartEnabled ? "已启用开机自启（如未生效，请在车机设置中允许本应用的自启动权限）" : "已关闭开机自启功能");
         }
         CompoundButton.OnCheckedChangeListener autoStartListener = (buttonView, isChecked) -> {
             autoStartEnabled = isChecked;
             savePreferences();
             if (tvAutoStartStatus != null) {
-                tvAutoStartStatus.setText(isChecked ? "通电或开机时自动启动悬浮窗服务" : "已关闭开机自启功能");
+                tvAutoStartStatus.setText(isChecked ? "已启用开机自启（如未生效，请在车机设置中允许本应用的自启动权限）" : "已关闭开机自启功能");
             }
         };
         cbAutoStartEnabled.setOnCheckedChangeListener(autoStartListener);

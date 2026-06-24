@@ -18,6 +18,12 @@ public class BootStartReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         Log.d(TAG, "Received broadcast action: " + action);
 
+        // 如果是覆盖安装，我们选择记录日志并退出，等待下一次亮屏/解锁或用户手动打开时自启
+        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
+            Log.d(TAG, "App updated. Defer service start until next screen/unlock/boot event.");
+            return;
+        }
+
         SharedPreferences sp = context.getSharedPreferences("floating_config", Context.MODE_PRIVATE);
         boolean autoStart = sp.getBoolean("auto_start", false);
         if (!autoStart) {
