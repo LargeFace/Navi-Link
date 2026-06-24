@@ -178,6 +178,21 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView panelFeaturesAvoidance;
     private ScrollView panelLayoutNormal;
     private ScrollView panelLayoutMinimal;
+    private ScrollView panelAboutUs;
+
+    private MaterialCardView menuAboutUs;
+    private View indicatorAboutUs;
+    private TextView tvMenuAboutUs;
+
+    private TextView tvAboutAppVersion;
+    private TextView tvAboutCpuInfo;
+    private TextView tvAboutRamInfo;
+    private TextView tvAboutRomInfo;
+    private TextView tvAboutApiLevel;
+    private TextView tvAboutKernelVersion;
+    private TextView tvAboutSecurityPatch;
+    private TextView tvAboutQqGroup;
+    private TextView tvAboutGitUrl;
 
     private int selectedMenuIndex = 0;
 
@@ -319,6 +334,23 @@ public class MainActivity extends AppCompatActivity {
         panelFeaturesAvoidance = findViewById(R.id.panel_features_avoidance);
         panelLayoutNormal = findViewById(R.id.panel_layout_normal);
         panelLayoutMinimal = findViewById(R.id.panel_layout_minimal);
+        panelAboutUs = findViewById(R.id.panel_about_us);
+
+        menuAboutUs = findViewById(R.id.menu_about_us);
+        indicatorAboutUs = findViewById(R.id.indicator_about_us);
+        tvMenuAboutUs = findViewById(R.id.tv_menu_about_us);
+
+        tvAboutAppVersion = findViewById(R.id.tv_about_app_version);
+        tvAboutCpuInfo = findViewById(R.id.tv_about_cpu_info);
+        tvAboutRamInfo = findViewById(R.id.tv_about_ram_info);
+        tvAboutRomInfo = findViewById(R.id.tv_about_rom_info);
+        tvAboutApiLevel = findViewById(R.id.tv_about_api_level);
+        tvAboutKernelVersion = findViewById(R.id.tv_about_kernel_version);
+        tvAboutSecurityPatch = findViewById(R.id.tv_about_security_patch);
+        tvAboutQqGroup = findViewById(R.id.tv_about_qq_group);
+        tvAboutGitUrl = findViewById(R.id.tv_about_git_url);
+
+        initAboutUsPanel();
 
         cardNormalTmcToggle = findViewById(R.id.card_normal_tmc_toggle);
         cbNormalTmcEnabled = findViewById(R.id.cb_normal_tmc_enabled);
@@ -1241,6 +1273,30 @@ public class MainActivity extends AppCompatActivity {
         if (menuLayoutMinimal != null) {
             menuLayoutMinimal.setOnClickListener(v -> switchMenu(3));
         }
+        if (menuAboutUs != null) {
+            menuAboutUs.setOnClickListener(v -> switchMenu(4));
+        }
+
+        if (tvAboutQqGroup != null) {
+            tvAboutQqGroup.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("QQ Group", "1106923186");
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(MainActivity.this, "QQ交流群已复制到剪贴板", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        if (tvAboutGitUrl != null) {
+            tvAboutGitUrl.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("Git Repo", "https://github.com/shuhao1022/Navi-Link");
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(MainActivity.this, "开源地址已复制到剪贴板", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         // Initialize default selected panel
         switchMenu(0);
@@ -1254,24 +1310,28 @@ public class MainActivity extends AppCompatActivity {
         if (panelFeaturesAvoidance != null) panelFeaturesAvoidance.setVisibility(index == 1 ? View.VISIBLE : View.GONE);
         if (panelLayoutNormal != null) panelLayoutNormal.setVisibility(index == 2 ? View.VISIBLE : View.GONE);
         if (panelLayoutMinimal != null) panelLayoutMinimal.setVisibility(index == 3 ? View.VISIBLE : View.GONE);
+        if (panelAboutUs != null) panelAboutUs.setVisibility(index == 4 ? View.VISIBLE : View.GONE);
 
         // 2. Indicators visibility
         if (indicatorSystemAppearance != null) indicatorSystemAppearance.setVisibility(index == 0 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorFeaturesAvoidance != null) indicatorFeaturesAvoidance.setVisibility(index == 1 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorLayoutNormal != null) indicatorLayoutNormal.setVisibility(index == 2 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorLayoutMinimal != null) indicatorLayoutMinimal.setVisibility(index == 3 ? View.VISIBLE : View.INVISIBLE);
+        if (indicatorAboutUs != null) indicatorAboutUs.setVisibility(index == 4 ? View.VISIBLE : View.INVISIBLE);
 
         // 3. Menu card background colors (selected gets #FF262626, others transparent)
         if (menuSystemAppearance != null) menuSystemAppearance.setCardBackgroundColor(ColorStateList.valueOf(index == 0 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuFeaturesAvoidance != null) menuFeaturesAvoidance.setCardBackgroundColor(ColorStateList.valueOf(index == 1 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuLayoutNormal != null) menuLayoutNormal.setCardBackgroundColor(ColorStateList.valueOf(index == 2 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuLayoutMinimal != null) menuLayoutMinimal.setCardBackgroundColor(ColorStateList.valueOf(index == 3 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
+        if (menuAboutUs != null) menuAboutUs.setCardBackgroundColor(ColorStateList.valueOf(index == 4 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
 
         // 4. Menu text colors (selected gets #FFFFFFFF, others #FF888888)
         if (tvMenuSystemAppearance != null) tvMenuSystemAppearance.setTextColor(index == 0 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuFeaturesAvoidance != null) tvMenuFeaturesAvoidance.setTextColor(index == 1 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuLayoutNormal != null) tvMenuLayoutNormal.setTextColor(index == 2 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuLayoutMinimal != null) tvMenuLayoutMinimal.setTextColor(index == 3 ? Color.WHITE : Color.parseColor("#FF888888"));
+        if (tvMenuAboutUs != null) tvMenuAboutUs.setTextColor(index == 4 ? Color.WHITE : Color.parseColor("#FF888888"));
     }
 
     private void checkPermissionAndStart() {
@@ -1462,5 +1522,132 @@ public class MainActivity extends AppCompatActivity {
         public String toString() {
             return label;
         }
+    }
+
+    private void initAboutUsPanel() {
+        // App Version
+        if (tvAboutAppVersion != null) {
+            try {
+                String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                tvAboutAppVersion.setText("v" + versionName);
+            } catch (Exception e) {
+                tvAboutAppVersion.setText("未知");
+            }
+        }
+
+        // CPU Info
+        if (tvAboutCpuInfo != null) {
+            tvAboutCpuInfo.setText(getAboutCpuInfo());
+        }
+
+        // RAM Info
+        if (tvAboutRamInfo != null) {
+            tvAboutRamInfo.setText(getAboutRamInfo());
+        }
+
+        // ROM Info
+        if (tvAboutRomInfo != null) {
+            tvAboutRomInfo.setText(getAboutRomInfo());
+        }
+
+        // Android API Level
+        if (tvAboutApiLevel != null) {
+            tvAboutApiLevel.setText("Android " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")");
+        }
+
+        // Kernel Version
+        if (tvAboutKernelVersion != null) {
+            tvAboutKernelVersion.setText(getAboutKernelVersion());
+        }
+
+        // Security Patch
+        if (tvAboutSecurityPatch != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                tvAboutSecurityPatch.setText(Build.VERSION.SECURITY_PATCH);
+            } else {
+                tvAboutSecurityPatch.setText("未知");
+            }
+        }
+    }
+
+    private String getAboutCpuInfo() {
+        try {
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("/proc/cpuinfo"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.contains("Hardware") || line.contains("model name") || line.contains("Processor")) {
+                    String[] parts = line.split(":");
+                    if (parts.length > 1) {
+                        String hardware = parts[1].trim();
+                        int cores = Runtime.getRuntime().availableProcessors();
+                        String arch = System.getProperty("os.arch");
+                        return hardware + " (" + cores + "核 / " + arch + ")";
+                    }
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int cores = Runtime.getRuntime().availableProcessors();
+        String arch = System.getProperty("os.arch");
+        return Build.HARDWARE + " (" + cores + "核 / " + arch + ")";
+    }
+
+    private String getAboutRamInfo() {
+        android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(android.content.Context.ACTIVITY_SERVICE);
+        android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+        if (am != null) {
+            am.getMemoryInfo(mi);
+            long totalMem = mi.totalMem;
+            long availMem = mi.availMem;
+            return formatByteSize(availMem) + " 可用 / 共 " + formatByteSize(totalMem);
+        }
+        return "未知";
+    }
+
+    private String getAboutRomInfo() {
+        try {
+            java.io.File path = android.os.Environment.getDataDirectory();
+            android.os.StatFs stat = new android.os.StatFs(path.getPath());
+            long blockSize = stat.getBlockSizeLong();
+            long totalBlocks = stat.getBlockCountLong();
+            long availableBlocks = stat.getAvailableBlocksLong();
+            long totalRom = totalBlocks * blockSize;
+            long availRom = availableBlocks * blockSize;
+            return formatByteSize(availRom) + " 可用 / 共 " + formatByteSize(totalRom);
+        } catch (Exception e) {
+            return "未知";
+        }
+    }
+
+    private String formatByteSize(long size) {
+        double gb = size / (1024.0 * 1024.0 * 1024.0);
+        if (gb >= 1.0) {
+            return String.format(java.util.Locale.US, "%.2f GB", gb);
+        }
+        double mb = size / (1024.0 * 1024.0);
+        return String.format(java.util.Locale.US, "%.1f MB", mb);
+    }
+
+    private String getAboutKernelVersion() {
+        try {
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("/proc/version"), 256);
+            try {
+                String version = br.readLine();
+                if (version != null) {
+                    String[] parts = version.split("\\s+");
+                    if (parts.length > 2) {
+                        return parts[2];
+                    }
+                    return version;
+                }
+            } finally {
+                br.close();
+            }
+        } catch (Exception e) {
+            // fallback
+        }
+        return System.getProperty("os.version", "未知");
     }
 }
