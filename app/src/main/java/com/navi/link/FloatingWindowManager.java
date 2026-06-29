@@ -222,7 +222,11 @@ public class FloatingWindowManager {
 
     /** 当前模式对应的缩放索引: 常规/常规巡航=0, 灵动岛/灵动岛巡航=1, 全数据=2 */
     private int getScaleIndex() {
-        if (currentMode == MODE_CRUISE) return styleMode == 1 ? 1 : 0; // 灵动岛巡航用1，常规巡航用0
+        if (currentMode == MODE_CRUISE) {
+            if (styleMode == 1) return 1; // 灵动岛巡航
+            if (styleMode == 2) return 2; // 全数据巡航
+            return 0; // 常规巡航
+        }
         if (styleMode == 0) return 0; // 常规
         return styleMode; // 1=灵动岛, 2=全数据
     }
@@ -505,6 +509,8 @@ public class FloatingWindowManager {
         } else {
             layoutRes = styleMode == 1
                     ? R.layout.layout_floating_cruise_minimal
+                    : styleMode == 2
+                    ? R.layout.layout_floating_cruise_full
                     : R.layout.layout_floating_cruise_normal;
         }
 
@@ -1422,6 +1428,8 @@ public class FloatingWindowManager {
             } else {
                 layoutRes = styleMode == 1
                         ? R.layout.layout_floating_cruise_minimal
+                        : styleMode == 2
+                        ? R.layout.layout_floating_cruise_full
                         : R.layout.layout_floating_cruise_normal;
             }
 

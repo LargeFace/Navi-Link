@@ -1640,7 +1640,7 @@ public class MainActivity extends AppCompatActivity {
         FloatingWindowManager manager = FloatingWindowManager.getInstance();
         int idx;
         if (manager != null && manager.isActive() && manager.getCurrentMode() == FloatingWindowManager.MODE_CRUISE) {
-            idx = (styleMode == 1) ? 1 : 0; // 灵动岛巡航用1，常规巡航/全数据用0
+            idx = (styleMode == 1) ? 1 : (styleMode == 2 ? 2 : 0); // 灵动岛巡航用1，全数据巡航用2，常规巡航用0
         } else {
             idx = Math.max(0, Math.min(styleMode, 2));
         }
