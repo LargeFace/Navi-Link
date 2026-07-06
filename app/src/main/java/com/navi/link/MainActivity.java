@@ -83,6 +83,13 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton rbMinimal;
     private RadioButton rbNormal;
     private RadioButton rbFull;
+    // 巡航窗口样式
+    private MaterialCardView cardCruiseNormal;
+    private MaterialCardView cardCruiseMinimal;
+    private MaterialCardView cardCruiseFull;
+    private RadioButton rbCruiseNormal;
+    private RadioButton rbCruiseMinimal;
+    private RadioButton rbCruiseFull;
     private RadioButton rbServiceOnly;
     private RadioButton rbNormalStart;
     private RadioButton rbBgDark;
@@ -229,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isMinimalStyle = false;
     private int styleMode = 0;
+    private int cruiseStyleMode = 0; // 0=常规巡航, 1=灵动岛巡航, 2=全数据巡航
     private boolean isServiceOnlyMode = false;
     private int startupMode = 0; // 0=正常, 1=纯服务, 2=启动高德地图
     private String targetAmapPackage = "";
@@ -349,6 +357,12 @@ public class MainActivity extends AppCompatActivity {
         rbNormal = findViewById(R.id.rb_normal);
         rbMinimal = findViewById(R.id.rb_minimal);
         rbFull = findViewById(R.id.rb_full);
+        cardCruiseNormal = findViewById(R.id.card_cruise_normal);
+        cardCruiseMinimal = findViewById(R.id.card_cruise_minimal);
+        cardCruiseFull = findViewById(R.id.card_cruise_full);
+        rbCruiseNormal = findViewById(R.id.rb_cruise_normal);
+        rbCruiseMinimal = findViewById(R.id.rb_cruise_minimal);
+        rbCruiseFull = findViewById(R.id.rb_cruise_full);
         rbServiceOnly = findViewById(R.id.rb_service_only);
         rbNormalStart = findViewById(R.id.rb_normal_start);
         rbBgDark = findViewById(R.id.rb_bg_dark);
@@ -514,6 +528,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         isMinimalStyle = sp.getBoolean(KEY_IS_MINIMAL, false);
         styleMode = sp.getInt(KEY_STYLE_MODE, isMinimalStyle ? 1 : 0);
+        cruiseStyleMode = sp.getInt("cruise_style_mode", 0);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
         isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
         startupMode = sp.getInt("startup_mode", isServiceOnlyMode ? 1 : 0);
@@ -782,11 +797,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectStyle(int mode) {
         if (styleMode == mode) return;
-        FloatingWindowManager manager = FloatingWindowManager.getInstance();
-        if (manager == null || !manager.isActive()) {
-            Toast.makeText(this, "悬浮窗未收到导航数据，无法切换样式", Toast.LENGTH_SHORT).show();
-            return;
-        }
         styleMode = mode;
         isMinimalStyle = (mode == 1);
         updateStyleSelection();
@@ -803,6 +813,25 @@ public class MainActivity extends AppCompatActivity {
         cardNormal.setStrokeColor(styleMode == 0 ? accentColor : Color.parseColor("#444444"));
         cardMinimal.setStrokeColor(styleMode == 1 ? accentColor : Color.parseColor("#444444"));
         cardFull.setStrokeColor(styleMode == 2 ? accentColor : Color.parseColor("#444444"));
+    }
+
+    private void selectCruiseStyle(int mode) {
+        if (cruiseStyleMode == mode) return;
+        cruiseStyleMode = mode;
+        updateCruiseStyleSelection();
+        updateSeekBarToCurrentScale();
+        savePreferences();
+        updateFloatingWindowStyle();
+    }
+
+    private void updateCruiseStyleSelection() {
+        rbCruiseNormal.setChecked(cruiseStyleMode == 0);
+        rbCruiseMinimal.setChecked(cruiseStyleMode == 1);
+        rbCruiseFull.setChecked(cruiseStyleMode == 2);
+        int accentColor = getAccentColor();
+        cardCruiseNormal.setStrokeColor(cruiseStyleMode == 0 ? accentColor : Color.parseColor("#444444"));
+        cardCruiseMinimal.setStrokeColor(cruiseStyleMode == 1 ? accentColor : Color.parseColor("#444444"));
+        cardCruiseFull.setStrokeColor(cruiseStyleMode == 2 ? accentColor : Color.parseColor("#444444"));
     }
 
     private void selectBackgroundMode(int mode) {
@@ -830,6 +859,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
         editor.putBoolean(KEY_IS_MINIMAL, isMinimalStyle)
                 .putInt(KEY_STYLE_MODE, styleMode)
+                .putInt("cruise_style_mode", cruiseStyleMode)
                 .putInt(KEY_THEME_COLOR, themeColor)
                 .putBoolean(KEY_IS_SERVICE_ONLY, startupMode == 1)
                 .putInt("startup_mode", startupMode)
@@ -933,6 +963,7 @@ public class MainActivity extends AppCompatActivity {
         // 更新选择项卡片的描边颜色
         updateStartupSelection();
         updateStyleSelection();
+        updateCruiseStyleSelection();
         updateBackgroundModeSelection();
 
         // 单选按钮（RadioButton）的着色
@@ -944,6 +975,9 @@ public class MainActivity extends AppCompatActivity {
         CompoundButtonCompat.setButtonTintList(rbNormal, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbMinimal, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbFull, accentColorStateList);
+        CompoundButtonCompat.setButtonTintList(rbCruiseNormal, accentColorStateList);
+        CompoundButtonCompat.setButtonTintList(rbCruiseMinimal, accentColorStateList);
+        CompoundButtonCompat.setButtonTintList(rbCruiseFull, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbServiceOnly, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbNormalStart, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbBgDark, accentColorStateList);
@@ -1077,6 +1111,9 @@ public class MainActivity extends AppCompatActivity {
         cardNormal.setOnClickListener(v -> selectStyle(0));
         cardMinimal.setOnClickListener(v -> selectStyle(1));
         cardFull.setOnClickListener(v -> selectStyle(2));
+        cardCruiseNormal.setOnClickListener(v -> selectCruiseStyle(0));
+        cardCruiseMinimal.setOnClickListener(v -> selectCruiseStyle(1));
+        cardCruiseFull.setOnClickListener(v -> selectCruiseStyle(2));
         cardBgDark.setOnClickListener(v -> selectBackgroundMode(0));
         cardBgSemi.setOnClickListener(v -> selectBackgroundMode(1));
         cardBgTransparent.setOnClickListener(v -> selectBackgroundMode(2));
@@ -1715,7 +1752,7 @@ public class MainActivity extends AppCompatActivity {
         FloatingWindowManager manager = FloatingWindowManager.getInstance();
         int idx;
         if (manager != null && manager.isActive() && manager.getCurrentMode() == FloatingWindowManager.MODE_CRUISE) {
-            idx = (styleMode == 1) ? 1 : (styleMode == 2 ? 2 : 0); // 灵动岛巡航用1，全数据巡航用2，常规巡航用0
+            idx = (cruiseStyleMode == 1) ? 1 : (cruiseStyleMode == 2 ? 2 : 0); // 灵动岛巡航用1，全数据巡航用2，常规巡航用0
         } else {
             idx = Math.max(0, Math.min(styleMode, 2));
         }
@@ -1796,6 +1833,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("选择投屏屏幕")
                 .setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
                     DisplayChoice choice = choices.get(which);
+                    clusterDisplayId = choice.displayId;
                     getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                             .edit()
                             .putInt("cluster_display_id", choice.displayId)

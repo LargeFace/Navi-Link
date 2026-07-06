@@ -534,7 +534,7 @@
 
                             <!-- Style choices -->
                             <TextView
-                                android:text="悬浮窗样式"
+                                android:text="导航窗口样式"
                                 android:textSize="12sp"
                                 android:textColor="#FFAAAAAA"
                                 android:layout_marginHorizontal="16dp"
@@ -660,6 +660,155 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:text="全数据"
+                                            android:buttonTint="#FF4FC3F7" />
+
+                                        <TextView
+                                            android:textSize="10sp"
+                                            android:textColor="#FF888888"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="2dp"
+                                            android:gravity="center"
+                                            android:text="竖版完整" />
+                                    </LinearLayout>
+                                </com.google.android.material.card.MaterialCardView>
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginHorizontal="16dp"
+                                android:layout_marginVertical="14dp"
+                                android:background="#1AFFFFFF" />
+
+                            <!-- Cruise Style choices -->
+                            <TextView
+                                android:text="巡航窗口样式"
+                                android:textSize="12sp"
+                                android:textColor="#FFAAAAAA"
+                                android:layout_marginHorizontal="16dp"
+                                android:layout_marginBottom="6dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:layout_marginHorizontal="16dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_cruise_normal"
+                                    android:focusable="true"
+                                    android:clickable="true"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="6dp"
+                                    app:cardBackgroundColor="#FF262626"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="#FF444444"
+                                    app:strokeWidth="1dp">
+
+                                    <LinearLayout
+                                        android:gravity="center"
+                                        android:orientation="vertical"
+                                        android:padding="10dp"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content">
+
+                                        <RadioButton
+                                            android:id="@+id/rb_cruise_normal"
+                                            android:textSize="13sp"
+                                            android:textColor="#FFFFFFFF"
+                                            android:clickable="false"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="常规巡航"
+                                            android:buttonTint="#FF4FC3F7" />
+
+                                        <TextView
+                                            android:textSize="10sp"
+                                            android:textColor="#FF888888"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="2dp"
+                                            android:gravity="center"
+                                            android:text="完整巡航" />
+                                    </LinearLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_cruise_minimal"
+                                    android:focusable="true"
+                                    android:clickable="true"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="6dp"
+                                    app:cardBackgroundColor="#FF262626"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="#FF444444"
+                                    app:strokeWidth="1dp">
+
+                                    <LinearLayout
+                                        android:gravity="center"
+                                        android:orientation="vertical"
+                                        android:padding="10dp"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content">
+
+                                        <RadioButton
+                                            android:id="@+id/rb_cruise_minimal"
+                                            android:textSize="13sp"
+                                            android:textColor="#FFFFFFFF"
+                                            android:clickable="false"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="灵动岛巡航"
+                                            android:buttonTint="#FF4FC3F7" />
+
+                                        <TextView
+                                            android:textSize="10sp"
+                                            android:textColor="#FF888888"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="2dp"
+                                            android:gravity="center"
+                                            android:text="精简岛风" />
+                                    </LinearLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_cruise_full"
+                                    android:focusable="true"
+                                    android:clickable="true"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    app:cardBackgroundColor="#FF262626"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="#FF444444"
+                                    app:strokeWidth="1dp">
+
+                                    <LinearLayout
+                                        android:gravity="center"
+                                        android:orientation="vertical"
+                                        android:padding="10dp"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content">
+
+                                        <RadioButton
+                                            android:id="@+id/rb_cruise_full"
+                                            android:textSize="13sp"
+                                            android:textColor="#FFFFFFFF"
+                                            android:clickable="false"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="全数据巡航"
                                             android:buttonTint="#FF4FC3F7" />
 
                                         <TextView
