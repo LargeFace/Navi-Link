@@ -472,15 +472,46 @@ public class MainActivity extends AppCompatActivity {
     private void showAmapSelectionDialog() {
         PackageManager pm = getPackageManager();
         List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        // 在 Android 15 上，有时即使加了 queries，getInstalledApplications 依然会被系统阉割过滤
+        // 我们直接按包名硬拿一次，如果存在就手动塞进列表里
+        String[] knownPackages = {
+                "com.autonavi.amapautp",
+                "com.autonavi.amapauto",
+                "com.autonavi.minimap",
+                "com.autonavi.companion"
+        };
+        for (String kp : knownPackages) {
+            try {
+                ApplicationInfo info = pm.getApplicationInfo(kp, PackageManager.GET_META_DATA);
+                boolean exists = false;
+                for (ApplicationInfo a : apps) {
+                    if (kp.equals(a.packageName)) {
+                        exists = true; break;
+                    }
+                }
+                if (!exists) {
+                    apps.add(info);
+                }
+            } catch (Exception e) {
+                // 不存在该包名，忽略
+            }
+        }
+
         List<ApplicationInfo> amapApps = new ArrayList<>();
         for (ApplicationInfo app : apps) {
-            if (app.packageName != null && (app.packageName.contains("com.autonavi")||app.name.contains("高德"))) {
-                amapApps.add(app);
+            CharSequence labelSeq = pm.getApplicationLabel(app);
+            String label = labelSeq != null ? labelSeq.toString() : "";
+            if (app.packageName != null) {
+                String pkg = app.packageName.toLowerCase();
+                if (pkg.contains("autonavi") || pkg.contains("amap") || label.contains("高德")) {
+                    amapApps.add(app);
+                }
             }
         }
 
         if (amapApps.isEmpty()) {
-            Toast.makeText(this, "未找到已安装的高德地图应用", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "未找到已安装的高德相关应用", Toast.LENGTH_SHORT).show();
             return;
         }
 
