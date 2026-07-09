@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.core.app.NotificationCompat;
 
@@ -65,15 +67,17 @@ public class AutoMapService extends Service {
      * 向高德地图请求当前运行状态（昼夜模式）
      */
     private void requestAmapDayNightState() {
-        try {
-            Intent intent = new Intent();
-            intent.setAction("AUTONAVI_STANDARD_BROADCAST_RECV");
-            intent.putExtra("KEY_TYPE", 13030);
-            intent.putExtra("SOURCE_APP", getPackageName());
-            sendBroadcast(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                Intent intent = new Intent();
+                intent.setAction("AUTONAVI_STANDARD_BROADCAST_RECV");
+                intent.putExtra("KEY_TYPE", 13030);
+                intent.putExtra("SOURCE_APP", getPackageName());
+                sendBroadcast(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 5000L); // 延迟5秒
     }
 
     @Override
