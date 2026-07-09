@@ -56,6 +56,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
 
         llMinNaviCameraGroup = floatingView.findViewById(R.id.ll_min_navi_camera_group);
         tvMinNaviCameraDist = floatingView.findViewById(R.id.tv_min_navi_camera_dist);
+        tvMinNaviCameraDist.setTextColor(Color.WHITE);
 
         laneLineViewMin = floatingView.findViewById(R.id.lane_line_view_min);
         if (laneLineViewMin != null) {
