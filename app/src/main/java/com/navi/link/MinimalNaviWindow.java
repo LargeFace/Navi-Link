@@ -31,6 +31,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
     private int themeColor = 0xFF4FC3F7;
     private boolean isOverspeedBlinking = false;
     private LaneLineView laneLineViewMin;
+    private boolean isNightMode = false;
 
     public MinimalNaviWindow(Context context, View floatingView) {
         super(context, floatingView);
@@ -125,8 +126,12 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
                 tvMinSpeed.setAlpha(1f);
                 isOverspeedBlinking = false;
                 // 恢复正常主题色
-                int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-                tvMinSpeed.setTextColor(accentColor);
+                if (isNightMode) {
+                    tvMinSpeed.setTextColor(TEXT_PRIMARY_DARK);
+                } else {
+                    int accentColor = isDarkThemeColor(themeColor) ? TEXT_PRIMARY_LIGHT : themeColor;
+                    tvMinSpeed.setTextColor(accentColor);
+                }
             }
         }
         if (tvDistanceNumMin != null) {
@@ -259,21 +264,15 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
     }
 
     @Override
-    public void applyDayNightTextColors(boolean isNightMode) {
-        int textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-        int textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-
-        if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(textPrimary);
-        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(textSecondary);
-        if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(textSecondary);
-        if (ivActionIconMin != null) ivActionIconMin.setColorFilter(textPrimary);
-        if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(textPrimary);
-        if (tvMinNaviCameraDist != null) tvMinNaviCameraDist.setTextColor(textPrimary);
-        if (tvMinDirection != null) tvMinDirection.setTextColor(textPrimary);
+    public void applyDayNightTextColors(boolean isNight) {
+        this.isNightMode = isNight;  // 更新夜间模式标志
+        int textPrimary = isNight ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
+        int textSecondary = isNight ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
 
         boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
         if (accentNaviInfo) {
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+            int accentColor = isDarkThemeColor(themeColor) ? textPrimary : themeColor;
+            if (tvMinSpeed != null) tvMinSpeed.setTextColor(accentColor);
             if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(accentColor);
             if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(accentColor);
             if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(accentColor);
@@ -281,27 +280,37 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
             if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(accentColor);
             if (tvMinDirection != null) tvMinDirection.setTextColor(accentColor);
         }
+        else {
+            if (tvMinSpeed != null) tvMinSpeed.setTextColor(textPrimary);
+            if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(textPrimary);
+            if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(textSecondary);
+            if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(textSecondary);
+            if (ivActionIconMin != null) ivActionIconMin.setColorFilter(textPrimary);
+            if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(textPrimary);
+            if (tvMinDirection != null) tvMinDirection.setTextColor(textPrimary);
+        }
     }
 
     @Override
     public void resetToDefaultTextColors() {
-        if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(TEXT_PRIMARY_DARK);
-        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(TEXT_SECONDARY_DARK);
-        if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(TEXT_SECONDARY_DARK);
-        if (ivActionIconMin != null) ivActionIconMin.clearColorFilter();
-        if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
-        if (tvMinNaviCameraDist != null) tvMinNaviCameraDist.setTextColor(TEXT_PRIMARY_DARK);
-        if (tvMinDirection != null) tvMinDirection.setTextColor(TEXT_PRIMARY_DARK);
-
         boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
         if (accentNaviInfo) {
             int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+            if (tvMinSpeed != null) tvMinSpeed.setTextColor(accentColor);
             if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(accentColor);
             if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(accentColor);
             if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(accentColor);
             if (ivActionIconMin != null) ivActionIconMin.setColorFilter(accentColor);
             if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(accentColor);
             if (tvMinDirection != null) tvMinDirection.setTextColor(accentColor);
+        } else {
+            if (tvMinSpeed != null) tvMinSpeed.setTextColor(TEXT_PRIMARY_DARK);
+            if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(TEXT_PRIMARY_DARK);
+            if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(TEXT_SECONDARY_DARK);
+            if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(TEXT_SECONDARY_DARK);
+            if (ivActionIconMin != null) ivActionIconMin.clearColorFilter();
+            if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
+            if (tvMinDirection != null) tvMinDirection.setTextColor(TEXT_PRIMARY_DARK);
         }
     }
 
