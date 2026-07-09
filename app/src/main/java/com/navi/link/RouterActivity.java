@@ -77,7 +77,7 @@ public class RouterActivity extends AppCompatActivity {
             if (launchIntent != null) {
                 startActivity(launchIntent);
             } else {
-                Toast.makeText(this, "未找到已配置的高德地图应用", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "未找到已配置的高德相关应用", Toast.LENGTH_SHORT).show();
                 startMainActivity();
             }
         } else {
