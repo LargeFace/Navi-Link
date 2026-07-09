@@ -865,6 +865,20 @@ public class FloatingWindowManager {
     public void onDayNightChanged(boolean isNight) {
         if (this.isNightMode == isNight) return; // 无变化不刷新
         this.isNightMode = isNight;
+
+        // 延时1秒转发高德昼夜广播
+        handler.postDelayed(() -> {
+            try {
+                Intent intent = new Intent("AUTONAVI_STANDARD_BROADCAST_SEND");
+                intent.putExtra("KEY_TYPE", 10019);
+                intent.putExtra("EXTRA_STATUS_DETAILS", -1);
+                intent.putExtra("EXTRA_STATE", isNight ? 38 : 37);
+                context.sendBroadcast(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 1000L);
+
         saveDayNightState();
         if (backgroundMode > 0) {
             applyThemeColor(); // 重新应用颜色
