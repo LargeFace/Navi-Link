@@ -21,7 +21,6 @@
         android:layout_height="100dp">
     <LinearLayout
         android:layout_margin="10dp"
-        android:background="@drawable/bg_exit_shape"
         android:orientation="vertical"
         android:gravity="center"
         android:layout_width="60dp"
@@ -194,29 +193,16 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <View
-                    android:id="@+id/v_divider"
-                    android:layout_width="1dp"
-                    android:layout_height="14dp"
-                    android:layout_marginStart="12dp"
-
-                    android:background="#E0E0E0"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tv_summary"
-                    app:layout_constraintTop_toTopOf="parent" />
-
                 <TextView
                     android:id="@+id/tv_eta"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
                     android:text="18:06到"
                     android:textColor="#E0E0E0"
                     android:textSize="20sp"
                     android:textStyle="bold"
 
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/v_divider"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
