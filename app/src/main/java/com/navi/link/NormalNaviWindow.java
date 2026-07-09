@@ -23,7 +23,6 @@ public class NormalNaviWindow extends BaseFloatingWindow {
     private View layoutInfoBar;
     private TextView tvExitInfo;
     private TextView tvNaviLightCount;
-    private View vDivider;
     private LaneLineView laneLineView;
 
     private String mOriginalRoadName = "";
@@ -57,7 +56,6 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         layoutInfoBar = floatingView.findViewById(R.id.layout_info_bar);
         tvExitInfo = floatingView.findViewById(R.id.tv_exit_info);
         tvNaviLightCount = floatingView.findViewById(R.id.tv_navi_light_count);
-        vDivider = floatingView.findViewById(R.id.v_divider);
         laneLineView = floatingView.findViewById(R.id.lane_line_view);
         llCameraDistGroup = floatingView.findViewById(R.id.ll_camera_dist_group);
         tvCameraDist = floatingView.findViewById(R.id.tv_camera_dist);
@@ -306,7 +304,6 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         if (tvEta != null) tvEta.setTextColor(textSecondary);
         if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(textPrimary);
         if (ivTurnIcon != null) ivTurnIcon.setColorFilter(textPrimary);
-        if (vDivider != null) vDivider.setBackgroundColor(textPrimary);
         if (tvExitInfo != null) tvExitInfo.setTextColor(textSecondary);
         if (tvCameraDist != null) tvCameraDist.setTextColor(textPrimary);
     }
@@ -321,7 +318,6 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         if (tvEta != null) tvEta.setTextColor(TEXT_SECONDARY_DARK);
         if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(TEXT_PRIMARY_DARK);
         if (ivTurnIcon != null) ivTurnIcon.clearColorFilter();
-        if (vDivider != null) vDivider.setBackgroundColor(TEXT_PRIMARY_DARK);
         if (tvExitInfo != null) tvExitInfo.setTextColor(TEXT_SECONDARY_DARK);
         if (tvCameraDist != null) tvCameraDist.setTextColor(TEXT_PRIMARY_DARK);
     }
