@@ -329,9 +329,9 @@
                     android:background="#E0E0E0"/>
             </LinearLayout>
              <ImageView
-                 android:padding="5dp"
+
                  android:background="@drawable/camera_shape"
-                 android:src="@mipmap/light"
+                 android:src="@drawable/camera_light"
                  android:layout_width="40dp"
                  android:layout_height="40dp"/>
              <TextView
@@ -341,8 +341,7 @@
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
                  android:text="--"
-                 android:textStyle="bold"
-                 android:textSize="18sp"/>
+                 android:textSize="25sp"/>
          </LinearLayout>
 
          <com.navi.link.TmcProgressBar

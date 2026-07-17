@@ -164,9 +164,8 @@ public class FullNaviWindow extends BaseFloatingWindow {
                 }
                 tvFullSpeed.setAlpha(1f);
                 isOverspeedBlinking = false;
-                // 恢复正常主题色，默认主题下为蓝色，不跟随昼夜
-                int fullCardAccent = isDarkThemeColor(themeColor) ? 0xFF0099FF : themeColor;
-                tvFullSpeed.setTextColor(fullCardAccent);
+                // 恢复正常车速颜色，使用 XML 原生设定的蓝色 #FF0099FF
+                tvFullSpeed.setTextColor(0xFF0099FF);
             }
         }
 
@@ -331,91 +330,32 @@ public class FullNaviWindow extends BaseFloatingWindow {
     @Override
     public void applyThemeColor(int themeColor) {
         this.themeColor = themeColor;
-        boolean isDark = isDarkThemeColor(themeColor);
-        int accentColor = isDark ? Color.WHITE : themeColor;
-        int fullCardAccent = isDark ? 0xFF0099FF : themeColor;
-        int backgroundMode = sp.getInt("background_mode", 0);
-
-        int labelColor = accentColor;
-        if (backgroundMode == 2) {
-            boolean isNight = sp.getBoolean("is_night_mode", true);
-            labelColor = isNight ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
-
-        // 动态染色车速圆圈的外边框
-        if (tvFullSpeed != null) {
-            View parent = (View) tvFullSpeed.getParent();
-            if (parent != null) {
-                Drawable bg = parent.getBackground();
-                if (bg instanceof LayerDrawable) {
-                    LayerDrawable ld = (LayerDrawable) bg.mutate();
-                    Drawable border = ld.getDrawable(0);
-                    if (border != null) {
-                        DrawableCompat.setTint(border.mutate(), fullCardAccent);
-                    }
-                }
-            }
-        }
-
-        if (tvFullSpeed != null && !isOverspeedBlinking) {
-            tvFullSpeed.setTextColor(fullCardAccent);
-        }
-        if (tvFullSpeedUnit != null) {
-            tvFullSpeedUnit.setTextColor(fullCardAccent);
-        }
-        if (tvFullDirection != null) {
-            tvFullDirection.setTextColor(fullCardAccent);
-        }
-
-        if (cvFullMiddle != null) {
-            cvFullMiddle.setCardBackgroundColor(fullCardAccent);
-        }
     }
 
     @Override
     public void applyDayNightTextColors(boolean isNightMode) {
         this.isNightMode = isNightMode;
-        int textPrimary;
-        int textSecondary;
-
-        if (sp.getInt("background_mode", 0) == 2 && themeColor != 0xFF1A1A1A) {
-            // 全透明 + 非默认黑色主题：文字颜色跟随主题
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (accentColor == Color.WHITE) {
-                textPrimary = TEXT_PRIMARY_DARK;
-                textSecondary = TEXT_SECONDARY_DARK;
-            } else {
-                textPrimary = accentColor;
-                textSecondary = accentColor;
-            }
-        } else {
-            // 跟随高德昼夜
-            textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-            textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
+        int textPrimary = getPrimaryTextColor(isNightMode);
+        int textSecondary = getSecondaryTextColor(isNightMode);
 
         if (tvFullCurRoadName != null) tvFullCurRoadName.setTextColor(textPrimary);
 
         // 计算中间卡片（cvFullMiddle）的文字与图标颜色，使其与卡片背景色形成对比
-        int cardBgColor = isDarkThemeColor(themeColor) ? 0xFF0099FF : themeColor;
-        boolean isCardBgDark = isDarkThemeColor(cardBgColor);
-        int middleTextPrimary = isCardBgDark ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-        int middleTextSecondary = isCardBgDark ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-
-        if (tvDistanceNumFull != null) tvDistanceNumFull.setTextColor(middleTextPrimary);
-        if (tvDistanceUnitFull != null) tvDistanceUnitFull.setTextColor(middleTextSecondary);
-        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(middleTextSecondary);
+        int middleBgColor = isNightMode ? sp.getInt("full_middle_bg_color_night", 0xFF0099FF) : sp.getInt("full_middle_bg_color_day", 0xFF0099FF);
+        if (cvFullMiddle != null) {
+            cvFullMiddle.setCardBackgroundColor(middleBgColor);
+        }
+        if (tvDistanceNumFull != null) tvDistanceNumFull.setTextColor(textPrimary);
+        if (tvDistanceUnitFull != null) tvDistanceUnitFull.setTextColor(textSecondary);
+        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(textPrimary);
         if (ivActionIconFull != null) {
-            if (isCardBgDark) {
-                ivActionIconFull.clearColorFilter();
-            } else {
-                ivActionIconFull.setColorFilter(middleTextPrimary);
-            }
+            ivActionIconFull.setColorFilter(textPrimary);
         }
 
         if (tvSummaryFull != null) tvSummaryFull.setTextColor(textSecondary);
         if (tvEtaFull != null) tvEtaFull.setTextColor(textSecondary);
         if (tvFullCameraDist != null) tvFullCameraDist.setTextColor(textPrimary);
+        if (tvFullDirection != null) tvFullDirection.setTextColor(textPrimary);
         if (tvFullLightCount != null) tvFullLightCount.setTextColor(textPrimary);
         if (tvSapaName1Full != null) tvSapaName1Full.setTextColor(textPrimary);
         if (tvSapaDist1Full != null) tvSapaDist1Full.setTextColor(textPrimary);
@@ -430,13 +370,15 @@ public class FullNaviWindow extends BaseFloatingWindow {
     @Override
     public void resetToDefaultTextColors() {
         if (tvFullCurRoadName != null) tvFullCurRoadName.setTextColor(TEXT_PRIMARY_DARK);
+        if (cvFullMiddle != null) cvFullMiddle.setCardBackgroundColor(0xFF0099FF);
         if (tvDistanceNumFull != null) tvDistanceNumFull.setTextColor(TEXT_PRIMARY_DARK);
         if (tvDistanceUnitFull != null) tvDistanceUnitFull.setTextColor(TEXT_SECONDARY_DARK);
-        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvRoadNameMinFull != null) tvRoadNameMinFull.setTextColor(TEXT_PRIMARY_DARK);
         if (ivActionIconFull != null) ivActionIconFull.clearColorFilter();
         if (tvSummaryFull != null) tvSummaryFull.setTextColor(TEXT_SECONDARY_DARK);
         if (tvEtaFull != null) tvEtaFull.setTextColor(TEXT_SECONDARY_DARK);
         if (tvFullCameraDist != null) tvFullCameraDist.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvFullDirection != null) tvFullDirection.setTextColor(TEXT_PRIMARY_DARK);
         if (tvFullLightCount != null) tvFullLightCount.setTextColor(TEXT_PRIMARY_DARK);
         if (tvSapaName1Full != null) tvSapaName1Full.setTextColor(TEXT_PRIMARY_DARK);
         if (tvSapaDist1Full != null) tvSapaDist1Full.setTextColor(TEXT_PRIMARY_DARK);

@@ -881,12 +881,8 @@ public class FloatingWindowManager {
             applyThemeColorToView(clusterFloatingView, clusterScaleTarget);
         }
 
-        // 仅全透明模式下应用昼夜文字颜色，其他模式恢复默认
-        if (backgroundMode == 2) {
-            applyDayNightTextColors();
-        } else {
-            resetToDefaultTextColors();
-        }
+        // 始终应用自定义的昼夜文字颜色
+        applyDayNightTextColors();
     }
 
     private void applyThemeColorToView(View root, View targetScale) {
@@ -901,37 +897,17 @@ public class FloatingWindowManager {
         int cornerDp = isIslandStyle ? 40 : 12;
         int cornerPx = Math.round(dpToPx(cornerDp) * getScale());
 
-        if (backgroundMode == 2) {
-            // 全透明
-            target.setBackground(null);
-        } else if (backgroundMode == 1) {
-            // 半透明 - 跟随主题色
-            GradientDrawable bgDrawable = new GradientDrawable();
-            bgDrawable.setShape(GradientDrawable.RECTANGLE);
-            int semiColor = (themeColor & 0x00FFFFFF) | 0x80000000;
-            bgDrawable.setColor(semiColor);
-            bgDrawable.setCornerRadius(cornerPx);
-            target.setBackground(bgDrawable);
-        } else {
-            // 深色背景 - 重建背景确保不残留透明度
-            GradientDrawable bgDrawable = new GradientDrawable();
-            bgDrawable.setShape(GradientDrawable.RECTANGLE);
-            int bgColor;
-            if (isDarkThemeColor(themeColor)) {
-                bgColor = 0xFF121212;
-            } else {
-                int r = (themeColor >> 16) & 0xFF;
-                int g = (themeColor >> 8) & 0xFF;
-                int b = themeColor & 0xFF;
-                bgColor = 0xFF000000
-                        | ((int) (r * 0.12f) << 16)
-                        | ((int) (g * 0.12f) << 8)
-                        | (int) (b * 0.12f);
-            }
-            bgDrawable.setColor(bgColor);
-            bgDrawable.setCornerRadius(cornerPx);
-            target.setBackground(bgDrawable);
-        }
+        SharedPreferences sp = context.getSharedPreferences("floating_config", Context.MODE_PRIVATE);
+        // 读取自定义背景色（白天默认：0xE6F5F5F5，夜间默认：0xCC121212），直接原样呈现，不作黑化折算
+        int bgColor = isNightMode ? 
+            sp.getInt("bg_color_night", 0xCC121212) : 
+            sp.getInt("bg_color_day", 0xE6F5F5F5);
+
+        GradientDrawable bgDrawable = new GradientDrawable();
+        bgDrawable.setShape(GradientDrawable.RECTANGLE);
+        bgDrawable.setColor(bgColor);
+        bgDrawable.setCornerRadius(cornerPx);
+        target.setBackground(bgDrawable);
     }
 
     /**
@@ -965,9 +941,7 @@ public class FloatingWindowManager {
         if (this.isNightMode == isNight) return; // 无变化不刷新
         this.isNightMode = isNight;
         saveDayNightState();
-        if (backgroundMode > 0) {
-            applyThemeColor(); // 重新应用颜色
-        }
+        applyThemeColor(); // 重新应用颜色
     }
 
     /**

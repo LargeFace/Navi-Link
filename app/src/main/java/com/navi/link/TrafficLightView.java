@@ -116,17 +116,26 @@ public class TrafficLightView extends LinearLayout {
         tvLightTime.setText(String.valueOf(countdown));
         updateTextSize();
 
-        boolean ledFontEnabled = sp.getBoolean("traffic_light_led_font_enabled", false);
-        if (ledFontEnabled) {
-            try {
-                android.graphics.Typeface ledTypeface = android.graphics.Typeface.createFromAsset(
-                        getContext().getAssets(), "fonts/led_font.ttf");
-                tvLightTime.setTypeface(ledTypeface, Typeface.NORMAL);
-            } catch (Exception e) {
+        int fontIndex = sp.getInt("countdown_font_index", 0);
+        if (fontIndex == 0) {
+            tvLightTime.setTypeface(null, android.graphics.Typeface.BOLD);
+        } else {
+            String fontPath = null;
+            if (fontIndex == 1) fontPath = "fonts/font_01.otf";
+            else if (fontIndex == 2) fontPath = "fonts/font_02.ttf";
+            else if (fontIndex == 3) fontPath = "fonts/font_03.ttf";
+
+            if (fontPath != null) {
+                try {
+                    android.graphics.Typeface tf = android.graphics.Typeface.createFromAsset(
+                            getContext().getAssets(), fontPath);
+                    tvLightTime.setTypeface(tf, Typeface.NORMAL);
+                } catch (Exception e) {
+                    tvLightTime.setTypeface(null, android.graphics.Typeface.BOLD);
+                }
+            } else {
                 tvLightTime.setTypeface(null, android.graphics.Typeface.BOLD);
             }
-        } else {
-            tvLightTime.setTypeface(null, android.graphics.Typeface.BOLD);
         }
 
         // 应用胶囊背景样式（填充/默认），内部会读写fillEnabled
@@ -164,9 +173,9 @@ public class TrafficLightView extends LinearLayout {
 
     private void updateTextSize() {
         if (tvLightTime == null) return;
-        boolean ledFontEnabled = sp.getBoolean("traffic_light_led_font_enabled", false);
+        int fontIndex = sp.getInt("countdown_font_index", 0);
         int baseSize = isCompact ? 25 : 30;
-        int size = ledFontEnabled ? (baseSize + 5) : baseSize;
+        int size = (fontIndex != 0) ? (baseSize + 5) : baseSize;
         float scale = getScale();
         tvLightTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP, size, getResources().getDisplayMetrics()) * scale);

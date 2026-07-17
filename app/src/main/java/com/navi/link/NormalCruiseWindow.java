@@ -57,12 +57,14 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
             llCruiseNormalFirstRow.setVisibility(showInfo ? View.VISIBLE : View.GONE);
         }
         if (tvCnSpeed != null) {
+            boolean hideSpeed = sp.getBoolean("hide_normal_cruise_speed", false);
+            tvCnSpeed.setVisibility(hideSpeed ? View.GONE : View.VISIBLE);
             tvCnSpeed.setText(String.valueOf(speed));
             // 超速警告：限速>0 且 当前速度>限速 → 红色+闪烁 (受 overspeed_warning_enabled 开关控制)
             int threshold = sp.getInt("overspeed_threshold", 0);
             double factor = 1.0 + threshold / 100.0;
             boolean isOverspeedWarningEnabled = sp.getBoolean("overspeed_warning_enabled", true);
-            boolean overspeed = isOverspeedWarningEnabled && cameraSpeed > 0 && speed > Math.round(cameraSpeed * factor);
+            boolean overspeed = !hideSpeed && isOverspeedWarningEnabled && cameraSpeed > 0 && speed > Math.round(cameraSpeed * factor);
             if (overspeed) {
                 tvCnSpeed.setTextColor(Color.RED);
                 ObjectAnimator animator = (ObjectAnimator) tvCnSpeed.getTag();
@@ -83,14 +85,8 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
                 }
                 tvCnSpeed.setAlpha(1f);
                 isOverspeedBlinking = false;
-                // 全透明 + 黑色主题：速度颜色跟随昼夜
-                if (themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                    tvCnSpeed.setTextColor(isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-                } else {
-                    // 恢复正常主题色
-                    int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-                    tvCnSpeed.setTextColor(accentColor);
-                }
+                // 恢复正常车速颜色（跟随主文字自定义颜色）
+                tvCnSpeed.setTextColor(getPrimaryTextColor(isNightMode));
             }
         }
         if (tvCnRoadName != null && roadName != null) {
@@ -205,48 +201,29 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
     @Override
     public void applyThemeColor(int themeColor) {
         this.themeColor = themeColor;
-        int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
+        int customPrimaryColor = getPrimaryTextColor(isNightMode);
         if (tvCnSpeed != null && !isOverspeedBlinking) {
-            // 全透明 + 黑色主题：速度颜色跟随昼夜
-            if (themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                boolean isNight = sp.getBoolean("is_night_mode", true);
-                tvCnSpeed.setTextColor(isNight ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-            } else {
-                tvCnSpeed.setTextColor(accentColor);
-            }
+            tvCnSpeed.setTextColor(customPrimaryColor);
         }
     }
 
     @Override
     public void applyDayNightTextColors(boolean isNightMode) {
         this.isNightMode = isNightMode;
-        int textPrimary;
-        int textSecondary;
-
-        if (sp.getInt("background_mode", 0) == 2 && themeColor != 0xFF1A1A1A) {
-            // 全透明 + 非默认黑色主题：文字颜色跟随主题
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (accentColor == Color.WHITE) {
-                textPrimary = TEXT_PRIMARY_DARK;
-                textSecondary = TEXT_SECONDARY_DARK;
-            } else {
-                textPrimary = accentColor;
-                textSecondary = accentColor;
-            }
-        } else {
-            // 跟随高德昼夜
-            textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-            textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
+        int textPrimary = getPrimaryTextColor(isNightMode);
 
         if (tvCnRoadName != null) tvCnRoadName.setTextColor(textPrimary);
         if (llCnCameraDist != null) llCnCameraDist.setTextColor(textPrimary);
+        if (tvCnSpeed != null && !isOverspeedBlinking) {
+            tvCnSpeed.setTextColor(textPrimary);
+        }
     }
 
     @Override
     public void resetToDefaultTextColors() {
         if (tvCnRoadName != null) tvCnRoadName.setTextColor(TEXT_PRIMARY_DARK);
         if (llCnCameraDist != null) llCnCameraDist.setTextColor(TEXT_PRIMARY_DARK);
+        if (tvCnSpeed != null) tvCnSpeed.setTextColor(TEXT_PRIMARY_DARK);
     }
 
     @Override

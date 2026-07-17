@@ -168,7 +168,11 @@ public class CameraWarningView extends LinearLayout {
 
     public void setTextColor(int color) {
         if (tvCameraDist != null) {
-            tvCameraDist.setTextColor(color);
+            if (getBackground() != null) {
+                tvCameraDist.setTextColor(0xFFFFFFFF);
+            } else {
+                tvCameraDist.setTextColor(color);
+            }
         }
     }
 }

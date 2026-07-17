@@ -19,6 +19,8 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.widget.Button;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -171,6 +173,11 @@ public class MainActivity extends AppCompatActivity {
     private SwitchCompat cbNormalCruiseInfoEnabled;
     private TextView tvNormalCruiseInfoStatus;
 
+    private MaterialCardView cardHideNormalCruiseSpeedToggle;
+    private SwitchCompat cbHideNormalCruiseSpeedEnabled;
+    private TextView tvHideNormalCruiseSpeedStatus;
+    private boolean hideNormalCruiseSpeed = false;
+
     private MaterialCardView cardMinimalLaneToggle;
     private SwitchCompat cbMinimalLaneEnabled;
     private TextView tvMinimalLaneStatus;
@@ -229,11 +236,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTrafficLightIconStatus;
     private boolean isTrafficLightIconEnabled = true;
 
-    // 红绿灯倒计时 LED 字体
-    private MaterialCardView cardTrafficLightLedFontToggle;
-    private SwitchCompat cbTrafficLightLedFontEnabled;
-    private TextView tvTrafficLightLedFontStatus;
-    private boolean isTrafficLightLedFontEnabled = false;
+    // 红绿灯倒计时字体选择
+    private MaterialCardView cardFontDefault, cardFontOne, cardFontTwo, cardFontThree;
+    private RadioButton rbFontDefault, rbFontOne, rbFontTwo, rbFontThree;
+    private int countdownFontIndex = 0; // 0=默认, 1=字体一, 2=字体二, 3=字体三
 
     // Menu elements
     private MaterialCardView menuSystemAppearance;
@@ -318,6 +324,45 @@ public class MainActivity extends AppCompatActivity {
 
     private int themeColor = 0xFF4FC3F7;
 
+    // Color Settings Menu & Panels
+    private com.google.android.material.card.MaterialCardView menuColorSettings;
+    private View indicatorColorSettings;
+    private TextView tvMenuColorSettings;
+    private ScrollView panelColorSettings;
+
+    // Color Previews
+    private View viewColorPreviewBgDay;
+    private View viewColorPreviewBgNight;
+    private View viewColorPreviewPrimaryDay;
+    private View viewColorPreviewPrimaryNight;
+    private View viewColorPreviewSecondaryDay;
+    private View viewColorPreviewSecondaryNight;
+    private View viewColorPreviewHintDay;
+    private View viewColorPreviewHintNight;
+    private View viewColorPreviewNormalTurnIconDay;
+    private View viewColorPreviewNormalTurnIconNight;
+    private View viewColorPreviewNormalTurnBgDay;
+    private View viewColorPreviewNormalTurnBgNight;
+    private View viewColorPreviewFullMiddleBgDay;
+    private View viewColorPreviewFullMiddleBgNight;
+    private com.google.android.material.card.MaterialCardView btnResetColors;
+
+    // Color Settings values
+    private int bgColorDay;
+    private int bgColorNight;
+    private int textPrimaryDay;
+    private int textPrimaryNight;
+    private int textSecondaryDay;
+    private int textSecondaryNight;
+    private int textHintDay;
+    private int textHintNight;
+    private int normalTurnIconColorDay;
+    private int normalTurnIconColorNight;
+    private int normalTurnIconBgColorDay;
+    private int normalTurnIconBgColorNight;
+    private int fullMiddleBgColorDay;
+    private int fullMiddleBgColorNight;
+
     private boolean isDarkColor(int color) {
         return ((color >> 16) & 0xFF) * 0.299
                 + ((color >> 8) & 0xFF) * 0.587
@@ -399,9 +444,9 @@ public class MainActivity extends AppCompatActivity {
         cardFull = findViewById(R.id.card_full);
         cardServiceOnly = findViewById(R.id.card_service_only);
         cardNormalStart = findViewById(R.id.card_normal_start);
-        cardBgDark = findViewById(R.id.card_bg_dark);
-        cardBgSemi = findViewById(R.id.card_bg_semi);
-        cardBgTransparent = findViewById(R.id.card_bg_transparent);
+        cardBgDark = null;
+        cardBgSemi = null;
+        cardBgTransparent = null;
         rbNormal = findViewById(R.id.rb_normal);
         rbMinimal = findViewById(R.id.rb_minimal);
         rbFull = findViewById(R.id.rb_full);
@@ -413,9 +458,9 @@ public class MainActivity extends AppCompatActivity {
         rbCruiseFull = findViewById(R.id.rb_cruise_full);
         rbServiceOnly = findViewById(R.id.rb_service_only);
         rbNormalStart = findViewById(R.id.rb_normal_start);
-        rbBgDark = findViewById(R.id.rb_bg_dark);
-        rbBgSemi = findViewById(R.id.rb_bg_semi);
-        rbBgTransparent = findViewById(R.id.rb_bg_transparent);
+        rbBgDark = null;
+        rbBgSemi = null;
+        rbBgTransparent = null;
         cardStartAmap = findViewById(R.id.card_start_amap);
         rbStartAmap = findViewById(R.id.rb_start_amap);
         tvStartAmapDesc = findViewById(R.id.tv_start_amap_desc);
@@ -482,9 +527,14 @@ public class MainActivity extends AppCompatActivity {
         cardTrafficLightIconToggle = findViewById(R.id.card_traffic_light_icon_toggle);
         cbTrafficLightIconEnabled = findViewById(R.id.cb_traffic_light_icon_enabled);
         tvTrafficLightIconStatus = findViewById(R.id.tv_traffic_light_icon_status);
-        cardTrafficLightLedFontToggle = findViewById(R.id.card_traffic_light_led_font_toggle);
-        cbTrafficLightLedFontEnabled = findViewById(R.id.cb_traffic_light_led_font_enabled);
-        tvTrafficLightLedFontStatus = findViewById(R.id.tv_traffic_light_led_font_status);
+        cardFontDefault = findViewById(R.id.card_font_default);
+        cardFontOne = findViewById(R.id.card_font_one);
+        cardFontTwo = findViewById(R.id.card_font_two);
+        cardFontThree = findViewById(R.id.card_font_three);
+        rbFontDefault = findViewById(R.id.rb_font_default);
+        rbFontOne = findViewById(R.id.rb_font_one);
+        rbFontTwo = findViewById(R.id.rb_font_two);
+        rbFontThree = findViewById(R.id.rb_font_three);
         cardTrafficLightStyle[0] = findViewById(R.id.card_traffic_light_style_0);
         cardTrafficLightStyle[1] = findViewById(R.id.card_traffic_light_style_1);
         cardTrafficLightStyle[2] = findViewById(R.id.card_traffic_light_style_2);
@@ -492,7 +542,7 @@ public class MainActivity extends AppCompatActivity {
         cardTrafficLightStyle[4] = findViewById(R.id.card_traffic_light_style_4);
         cardTrafficLightStyle[5] = findViewById(R.id.card_traffic_light_style_5);
         cardTrafficLightStyle[6] = findViewById(R.id.card_traffic_light_style_6);
-        llThemeColors = findViewById(R.id.ll_theme_colors);
+        llThemeColors = null;
         tvSys = findViewById(R.id.tv_sys);
         tvStyle = findViewById(R.id.tv_style);
         tvOperation = findViewById(R.id.tv_operation);
@@ -518,18 +568,21 @@ public class MainActivity extends AppCompatActivity {
 
         // Bind menu UI elements
         menuSystemAppearance = findViewById(R.id.menu_system_appearance);
+        menuColorSettings = findViewById(R.id.menu_color_settings);
         menuFeaturesAvoidance = findViewById(R.id.menu_features_avoidance);
         menuLayoutNormal = findViewById(R.id.menu_layout_normal);
         menuLayoutMinimal = findViewById(R.id.menu_layout_minimal);
         menuTrafficLight = findViewById(R.id.menu_traffic_light);
 
         indicatorSystemAppearance = findViewById(R.id.indicator_system_appearance);
+        indicatorColorSettings = findViewById(R.id.indicator_color_settings);
         indicatorFeaturesAvoidance = findViewById(R.id.indicator_features_avoidance);
         indicatorLayoutNormal = findViewById(R.id.indicator_layout_normal);
         indicatorLayoutMinimal = findViewById(R.id.indicator_layout_minimal);
         indicatorTrafficLight = findViewById(R.id.indicator_traffic_light);
 
         tvMenuSystemAppearance = findViewById(R.id.tv_menu_system_appearance);
+        tvMenuColorSettings = findViewById(R.id.tv_menu_color_settings);
         tvMenuFeaturesAvoidance = findViewById(R.id.tv_menu_features_avoidance);
         tvMenuLayoutNormal = findViewById(R.id.tv_menu_layout_normal);
         tvMenuLayoutMinimal = findViewById(R.id.tv_menu_layout_minimal);
@@ -537,6 +590,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Bind right side panel scroll views
         panelSystemAppearance = findViewById(R.id.panel_system_appearance);
+        panelColorSettings = findViewById(R.id.panel_color_settings);
         panelFeaturesAvoidance = findViewById(R.id.panel_features_avoidance);
         panelLayoutNormal = findViewById(R.id.panel_layout_normal);
         panelLayoutMinimal = findViewById(R.id.panel_layout_minimal);
@@ -573,6 +627,10 @@ public class MainActivity extends AppCompatActivity {
         cbNormalCruiseInfoEnabled = findViewById(R.id.cb_normal_cruise_info_enabled);
         tvNormalCruiseInfoStatus = findViewById(R.id.tv_normal_cruise_info_status);
 
+        cardHideNormalCruiseSpeedToggle = findViewById(R.id.card_hide_normal_cruise_speed_toggle);
+        cbHideNormalCruiseSpeedEnabled = findViewById(R.id.cb_hide_normal_cruise_speed_enabled);
+        tvHideNormalCruiseSpeedStatus = findViewById(R.id.tv_hide_normal_cruise_speed_status);
+
         cardMinimalLaneToggle = findViewById(R.id.card_minimal_lane_toggle);
         cbMinimalLaneEnabled = findViewById(R.id.cb_minimal_lane_enabled);
         tvMinimalLaneStatus = findViewById(R.id.tv_minimal_lane_status);
@@ -597,13 +655,157 @@ public class MainActivity extends AppCompatActivity {
         cbMinimalLightCountEnabled = findViewById(R.id.cb_minimal_light_count_enabled);
         tvMinimalLightCountStatus = findViewById(R.id.tv_minimal_light_count_status);
 
-        cardMinimalAccentNaviInfoToggle = findViewById(R.id.card_minimal_accent_navi_info_toggle);
-        cbMinimalAccentNaviInfoEnabled = findViewById(R.id.cb_minimal_accent_navi_info_enabled);
-        tvMinimalAccentNaviInfoStatus = findViewById(R.id.tv_minimal_accent_navi_info_status);
+        cardMinimalAccentNaviInfoToggle = null;
+        cbMinimalAccentNaviInfoEnabled = null;
+        tvMinimalAccentNaviInfoStatus = null;
 
         cardMinimalSpeedLimitToggle = findViewById(R.id.card_minimal_speed_limit_toggle);
         cbMinimalSpeedLimitEnabled = findViewById(R.id.cb_minimal_speed_limit_enabled);
         tvMinimalSpeedLimitStatus = findViewById(R.id.tv_minimal_speed_limit_status);
+
+        // Bind color settings views and listeners
+        viewColorPreviewBgDay = findViewById(R.id.view_color_preview_bg_day);
+        viewColorPreviewBgNight = findViewById(R.id.view_color_preview_bg_night);
+        viewColorPreviewPrimaryDay = findViewById(R.id.view_color_preview_primary_day);
+        viewColorPreviewPrimaryNight = findViewById(R.id.view_color_preview_primary_night);
+        viewColorPreviewSecondaryDay = findViewById(R.id.view_color_preview_secondary_day);
+        viewColorPreviewSecondaryNight = findViewById(R.id.view_color_preview_secondary_night);
+        viewColorPreviewHintDay = findViewById(R.id.view_color_preview_hint_day);
+        viewColorPreviewHintNight = findViewById(R.id.view_color_preview_hint_night);
+        viewColorPreviewNormalTurnIconDay = findViewById(R.id.view_color_preview_normal_turn_icon_day);
+        viewColorPreviewNormalTurnIconNight = findViewById(R.id.view_color_preview_normal_turn_icon_night);
+        viewColorPreviewNormalTurnBgDay = findViewById(R.id.view_color_preview_normal_turn_bg_day);
+        viewColorPreviewNormalTurnBgNight = findViewById(R.id.view_color_preview_normal_turn_bg_night);
+        viewColorPreviewFullMiddleBgDay = findViewById(R.id.view_color_preview_full_middle_bg_day);
+        viewColorPreviewFullMiddleBgNight = findViewById(R.id.view_color_preview_full_middle_bg_night);
+        btnResetColors = findViewById(R.id.btn_reset_colors);
+
+        if (viewColorPreviewBgDay != null) {
+            viewColorPreviewBgDay.setOnClickListener(v -> showColorPickerDialog("白天背景色", bgColorDay, color -> {
+                bgColorDay = color;
+                updateColorPreview(viewColorPreviewBgDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewBgNight != null) {
+            viewColorPreviewBgNight.setOnClickListener(v -> showColorPickerDialog("夜间背景色", bgColorNight, color -> {
+                bgColorNight = color;
+                updateColorPreview(viewColorPreviewBgNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewPrimaryDay != null) {
+            viewColorPreviewPrimaryDay.setOnClickListener(v -> showColorPickerDialog("白天主文字颜色", textPrimaryDay, color -> {
+                textPrimaryDay = color;
+                updateColorPreview(viewColorPreviewPrimaryDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewPrimaryNight != null) {
+            viewColorPreviewPrimaryNight.setOnClickListener(v -> showColorPickerDialog("夜间主文字颜色", textPrimaryNight, color -> {
+                textPrimaryNight = color;
+                updateColorPreview(viewColorPreviewPrimaryNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewSecondaryDay != null) {
+            viewColorPreviewSecondaryDay.setOnClickListener(v -> showColorPickerDialog("白天次文字颜色", textSecondaryDay, color -> {
+                textSecondaryDay = color;
+                updateColorPreview(viewColorPreviewSecondaryDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewSecondaryNight != null) {
+            viewColorPreviewSecondaryNight.setOnClickListener(v -> showColorPickerDialog("夜间次文字颜色", textSecondaryNight, color -> {
+                textSecondaryNight = color;
+                updateColorPreview(viewColorPreviewSecondaryNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewHintDay != null) {
+            viewColorPreviewHintDay.setOnClickListener(v -> showColorPickerDialog("白天提示文字颜色", textHintDay, color -> {
+                textHintDay = color;
+                updateColorPreview(viewColorPreviewHintDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewHintNight != null) {
+            viewColorPreviewHintNight.setOnClickListener(v -> showColorPickerDialog("夜间提示文字颜色", textHintNight, color -> {
+                textHintNight = color;
+                updateColorPreview(viewColorPreviewHintNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+
+        if (viewColorPreviewNormalTurnIconDay != null) {
+            viewColorPreviewNormalTurnIconDay.setOnClickListener(v -> showColorPickerDialog("常规转向图标白天颜色", normalTurnIconColorDay, color -> {
+                normalTurnIconColorDay = color;
+                updateColorPreview(viewColorPreviewNormalTurnIconDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewNormalTurnIconNight != null) {
+            viewColorPreviewNormalTurnIconNight.setOnClickListener(v -> showColorPickerDialog("常规转向图标夜间颜色", normalTurnIconColorNight, color -> {
+                normalTurnIconColorNight = color;
+                updateColorPreview(viewColorPreviewNormalTurnIconNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewNormalTurnBgDay != null) {
+            viewColorPreviewNormalTurnBgDay.setOnClickListener(v -> showColorPickerDialog("常规转向背景白天颜色", normalTurnIconBgColorDay, color -> {
+                normalTurnIconBgColorDay = color;
+                updateColorPreview(viewColorPreviewNormalTurnBgDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewNormalTurnBgNight != null) {
+            viewColorPreviewNormalTurnBgNight.setOnClickListener(v -> showColorPickerDialog("常规转向背景夜间颜色", normalTurnIconBgColorNight, color -> {
+                normalTurnIconBgColorNight = color;
+                updateColorPreview(viewColorPreviewNormalTurnBgNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewFullMiddleBgDay != null) {
+            viewColorPreviewFullMiddleBgDay.setOnClickListener(v -> showColorPickerDialog("全数据卡片白天背景", fullMiddleBgColorDay, color -> {
+                fullMiddleBgColorDay = color;
+                updateColorPreview(viewColorPreviewFullMiddleBgDay, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+        if (viewColorPreviewFullMiddleBgNight != null) {
+            viewColorPreviewFullMiddleBgNight.setOnClickListener(v -> showColorPickerDialog("全数据卡片夜间背景", fullMiddleBgColorNight, color -> {
+                fullMiddleBgColorNight = color;
+                updateColorPreview(viewColorPreviewFullMiddleBgNight, color);
+                savePreferences();
+                refreshFloatingWindow();
+            }));
+        }
+
+        if (btnResetColors != null) {
+            btnResetColors.setOnClickListener(v -> new android.app.AlertDialog.Builder(MainActivity.this)
+                    .setTitle("提示")
+                    .setMessage("确定要将所有色调配置恢复为默认吗？")
+                    .setNegativeButton("取消", null)
+                    .setPositiveButton("确定", (dialog, which) -> {
+                        resetToDefaultColors();
+                        savePreferences();
+                        refreshFloatingWindow();
+                        Toast.makeText(MainActivity.this, "已恢复默认颜色配置", Toast.LENGTH_SHORT).show();
+                    }).show());
+        }
     }
 
     private void loadPreferences() {
@@ -612,6 +814,21 @@ public class MainActivity extends AppCompatActivity {
         styleMode = sp.getInt(KEY_STYLE_MODE, isMinimalStyle ? 1 : 0);
         cruiseStyleMode = sp.getInt("cruise_style_mode", 0);
         themeColor = sp.getInt(KEY_THEME_COLOR, 0xFF4FC3F7);
+        bgColorDay = sp.getInt("bg_color_day", 0xE6F5F5F5);
+        bgColorNight = sp.getInt("bg_color_night", 0xCC121212);
+        textPrimaryDay = sp.getInt("text_primary_day", 0xFF1A1A1A);
+        textPrimaryNight = sp.getInt("text_primary_night", 0xFFFFFFFF);
+        textSecondaryDay = sp.getInt("text_secondary_day", 0xFF333333);
+        textSecondaryNight = sp.getInt("text_secondary_night", 0xBBFFFFFF);
+        textHintDay = sp.getInt("text_hint_day", 0xFF999999);
+        textHintNight = sp.getInt("text_hint_night", 0xFF888888);
+        normalTurnIconColorDay = sp.getInt("normal_turn_icon_color_day", 0xFFFFFFFF);
+        normalTurnIconColorNight = sp.getInt("normal_turn_icon_color_night", 0xFFFFFFFF);
+        normalTurnIconBgColorDay = sp.getInt("normal_turn_icon_bg_color_day", 0xFF007D5E);
+        normalTurnIconBgColorNight = sp.getInt("normal_turn_icon_bg_color_night", 0xFF007D5E);
+        fullMiddleBgColorDay = sp.getInt("full_middle_bg_color_day", 0xFF0099FF);
+        fullMiddleBgColorNight = sp.getInt("full_middle_bg_color_night", 0xFF0099FF);
+        updateColorPreviews();
         isServiceOnlyMode = sp.getBoolean(KEY_IS_SERVICE_ONLY, false);
         startupMode = sp.getInt("startup_mode", isServiceOnlyMode ? 1 : 0);
         targetAmapPackage = sp.getString("target_amap_package", "");
@@ -643,11 +860,12 @@ public class MainActivity extends AppCompatActivity {
         normalTmcEnabled = sp.getBoolean("normal_navi_tmc_enabled", true);
         normalBottomInfoEnabled = sp.getBoolean("normal_navi_bottom_info_enabled", true);
         normalCruiseInfoEnabled = sp.getBoolean("normal_cruise_info_enabled", true);
+        hideNormalCruiseSpeed = sp.getBoolean("hide_normal_cruise_speed", false);
         minimalLaneEnabled = sp.getBoolean("minimal_navi_lane_enabled", false);
         isTrafficLightFillEnabled = sp.getBoolean("traffic_light_fill_enabled", false);
         isTrafficLightCapsuleEnabled = sp.getBoolean("traffic_light_capsule_enabled", true);
         isTrafficLightIconEnabled = sp.getBoolean("traffic_light_icon_enabled", true);
-        isTrafficLightLedFontEnabled = sp.getBoolean("traffic_light_led_font_enabled", false);
+        countdownFontIndex = sp.getInt("countdown_font_index", 0);
         trafficLightStyle = sp.getInt("traffic_light_style", 0);
         crossMapHideEnabled = sp.getBoolean("hide_on_cross_map", false);
         hideLaneLineBg = sp.getBoolean("hide_lane_line_bg", false);
@@ -773,12 +991,7 @@ public class MainActivity extends AppCompatActivity {
         if (tvTrafficLightIconStatus != null) {
             tvTrafficLightIconStatus.setText(isTrafficLightIconEnabled ? "胶囊灯图图标已显示" : "胶囊灯图图标已隐藏");
         }
-        if (cbTrafficLightLedFontEnabled != null) {
-            cbTrafficLightLedFontEnabled.setChecked(isTrafficLightLedFontEnabled);
-        }
-        if (tvTrafficLightLedFontStatus != null) {
-            tvTrafficLightLedFontStatus.setText(isTrafficLightLedFontEnabled ? "已启用 LED 字体风格" : "已使用系统默认字体");
-        }
+        updateCountdownFontSelection();
         if (btnAdjustClusterPos != null) {
             btnAdjustClusterPos.setVisibility(clusterMirrorEnabled ? View.VISIBLE : View.GONE);
         }
@@ -801,6 +1014,12 @@ public class MainActivity extends AppCompatActivity {
         }
         if (tvNormalCruiseInfoStatus != null) {
             tvNormalCruiseInfoStatus.setText(normalCruiseInfoEnabled ? "第一排图文信息已启用" : "第一排图文信息已禁用");
+        }
+        if (cbHideNormalCruiseSpeedEnabled != null) {
+            cbHideNormalCruiseSpeedEnabled.setChecked(hideNormalCruiseSpeed);
+        }
+        if (tvHideNormalCruiseSpeedStatus != null) {
+            tvHideNormalCruiseSpeedStatus.setText(hideNormalCruiseSpeed ? "已隐藏常规巡航车速" : "常规巡航时显示车速");
         }
         if (cbMinimalLaneEnabled != null) {
             cbMinimalLaneEnabled.setChecked(minimalLaneEnabled);
@@ -973,13 +1192,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateBackgroundModeSelection() {
-        rbBgDark.setChecked(backgroundMode == 0);
-        rbBgSemi.setChecked(backgroundMode == 1);
-        rbBgTransparent.setChecked(backgroundMode == 2);
+        if (rbBgDark != null) rbBgDark.setChecked(backgroundMode == 0);
+        if (rbBgSemi != null) rbBgSemi.setChecked(backgroundMode == 1);
+        if (rbBgTransparent != null) rbBgTransparent.setChecked(backgroundMode == 2);
         int accentColor = getAccentColor();
-        cardBgDark.setStrokeColor(backgroundMode == 0 ? accentColor : Color.parseColor("#444444"));
-        cardBgSemi.setStrokeColor(backgroundMode == 1 ? accentColor : Color.parseColor("#444444"));
-        cardBgTransparent.setStrokeColor(backgroundMode == 2 ? accentColor : Color.parseColor("#444444"));
+        if (cardBgDark != null) cardBgDark.setStrokeColor(backgroundMode == 0 ? accentColor : Color.parseColor("#444444"));
+        if (cardBgSemi != null) cardBgSemi.setStrokeColor(backgroundMode == 1 ? accentColor : Color.parseColor("#444444"));
+        if (cardBgTransparent != null) cardBgTransparent.setStrokeColor(backgroundMode == 2 ? accentColor : Color.parseColor("#444444"));
+    }
+
+    private void selectCountdownFont(int index) {
+        if (countdownFontIndex == index) return;
+        countdownFontIndex = index;
+        updateCountdownFontSelection();
+        savePreferences();
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager != null) {
+            manager.refreshWindow();
+        }
+    }
+
+    private void updateCountdownFontSelection() {
+        if (rbFontDefault != null) rbFontDefault.setChecked(countdownFontIndex == 0);
+        if (rbFontOne != null) rbFontOne.setChecked(countdownFontIndex == 1);
+        if (rbFontTwo != null) rbFontTwo.setChecked(countdownFontIndex == 2);
+        if (rbFontThree != null) rbFontThree.setChecked(countdownFontIndex == 3);
+
+        int accentColor = getAccentColor();
+        if (cardFontDefault != null) cardFontDefault.setStrokeColor(countdownFontIndex == 0 ? accentColor : Color.parseColor("#444444"));
+        if (cardFontOne != null) cardFontOne.setStrokeColor(countdownFontIndex == 1 ? accentColor : Color.parseColor("#444444"));
+        if (cardFontTwo != null) cardFontTwo.setStrokeColor(countdownFontIndex == 2 ? accentColor : Color.parseColor("#444444"));
+        if (cardFontThree != null) cardFontThree.setStrokeColor(countdownFontIndex == 3 ? accentColor : Color.parseColor("#444444"));
     }
 
     private void selectTrafficLightStyle(int style) {
@@ -1027,12 +1270,13 @@ public class MainActivity extends AppCompatActivity {
                 .putBoolean("traffic_light_fill_enabled", isTrafficLightFillEnabled)
                 .putBoolean("traffic_light_capsule_enabled", isTrafficLightCapsuleEnabled)
                 .putBoolean("traffic_light_icon_enabled", isTrafficLightIconEnabled)
-                .putBoolean("traffic_light_led_font_enabled", isTrafficLightLedFontEnabled)
+                .putInt("countdown_font_index", countdownFontIndex)
                 .putInt("traffic_light_style", trafficLightStyle)
                 .putBoolean("normal_navi_tmc_enabled", normalTmcEnabled)
                 .putBoolean("normal_navi_bottom_info_enabled", normalBottomInfoEnabled)
                 .putBoolean("normal_cruise_info_enabled", normalCruiseInfoEnabled)
                 .putBoolean("minimal_navi_lane_enabled", minimalLaneEnabled);
+        editor.putBoolean("hide_normal_cruise_speed", hideNormalCruiseSpeed);
         editor.putBoolean("minimal_camera_enabled", isMinimalCameraEnabled);
         editor.putBoolean("minimal_road_name_enabled", isMinimalRoadNameEnabled);
         editor.putBoolean("minimal_direction_enabled", isMinimalDirectionEnabled);
@@ -1042,10 +1286,25 @@ public class MainActivity extends AppCompatActivity {
         editor.putBoolean("minimal_accent_navi_info_enabled", isMinimalAccentNaviInfoEnabled);
         editor.putBoolean("minimal_autocenter_enabled", isMinimalAutocenterEnabled);
         editor.putBoolean("minimal_speed_limit_enabled", isMinimalSpeedLimitEnabled);
+        editor.putInt("bg_color_day", bgColorDay);
+        editor.putInt("bg_color_night", bgColorNight);
+        editor.putInt("text_primary_day", textPrimaryDay);
+        editor.putInt("text_primary_night", textPrimaryNight);
+        editor.putInt("text_secondary_day", textSecondaryDay);
+        editor.putInt("text_secondary_night", textSecondaryNight);
+        editor.putInt("text_hint_day", textHintDay);
+        editor.putInt("text_hint_night", textHintNight);
+        editor.putInt("normal_turn_icon_color_day", normalTurnIconColorDay);
+        editor.putInt("normal_turn_icon_color_night", normalTurnIconColorNight);
+        editor.putInt("normal_turn_icon_bg_color_day", normalTurnIconBgColorDay);
+        editor.putInt("normal_turn_icon_bg_color_night", normalTurnIconBgColorNight);
+        editor.putInt("full_middle_bg_color_day", fullMiddleBgColorDay);
+        editor.putInt("full_middle_bg_color_night", fullMiddleBgColorNight);
         editor.apply();
     }
 
     private void initThemeColorChips() {
+        if (llThemeColors == null) return;
         llThemeColors.removeAllViews();
         int sizePx = dpToPx(36);
         int marginPx = dpToPx(6);
@@ -1119,6 +1378,7 @@ public class MainActivity extends AppCompatActivity {
         updateStyleSelection();
         updateCruiseStyleSelection();
         updateBackgroundModeSelection();
+        updateCountdownFontSelection();
         updateTrafficLightStyleSelection();
 
         // 单选按钮（RadioButton）的着色
@@ -1135,9 +1395,13 @@ public class MainActivity extends AppCompatActivity {
         CompoundButtonCompat.setButtonTintList(rbCruiseFull, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbServiceOnly, accentColorStateList);
         CompoundButtonCompat.setButtonTintList(rbNormalStart, accentColorStateList);
-        CompoundButtonCompat.setButtonTintList(rbBgDark, accentColorStateList);
-        CompoundButtonCompat.setButtonTintList(rbBgSemi, accentColorStateList);
-        CompoundButtonCompat.setButtonTintList(rbBgTransparent, accentColorStateList);
+        if (rbBgDark != null) CompoundButtonCompat.setButtonTintList(rbBgDark, accentColorStateList);
+        if (rbBgSemi != null) CompoundButtonCompat.setButtonTintList(rbBgSemi, accentColorStateList);
+        if (rbBgTransparent != null) CompoundButtonCompat.setButtonTintList(rbBgTransparent, accentColorStateList);
+        if (rbFontDefault != null) CompoundButtonCompat.setButtonTintList(rbFontDefault, accentColorStateList);
+        if (rbFontOne != null) CompoundButtonCompat.setButtonTintList(rbFontOne, accentColorStateList);
+        if (rbFontTwo != null) CompoundButtonCompat.setButtonTintList(rbFontTwo, accentColorStateList);
+        if (rbFontThree != null) CompoundButtonCompat.setButtonTintList(rbFontThree, accentColorStateList);
 
         // 更新开关（SwitchCompat）的主题颜色
         updateSwitchTheme(cbCruiseEnabled, accentColor);
@@ -1155,10 +1419,10 @@ public class MainActivity extends AppCompatActivity {
         updateSwitchTheme(cbTrafficLightFillEnabled, accentColor);
         updateSwitchTheme(cbTrafficLightCapsuleEnabled, accentColor);
         updateSwitchTheme(cbTrafficLightIconEnabled, accentColor);
-        updateSwitchTheme(cbTrafficLightLedFontEnabled, accentColor);
         updateSwitchTheme(cbNormalTmcEnabled, accentColor);
         updateSwitchTheme(cbNormalBottomInfoEnabled, accentColor);
         updateSwitchTheme(cbNormalCruiseInfoEnabled, accentColor);
+        updateSwitchTheme(cbHideNormalCruiseSpeedEnabled, accentColor);
         updateSwitchTheme(cbMinimalLaneEnabled, accentColor);
         updateSwitchTheme(cbMinimalRoadNameEnabled, accentColor);
         updateSwitchTheme(cbMinimalDirectionEnabled, accentColor);
@@ -1293,9 +1557,9 @@ public class MainActivity extends AppCompatActivity {
         cardCruiseNormal.setOnClickListener(v -> selectCruiseStyle(0));
         cardCruiseMinimal.setOnClickListener(v -> selectCruiseStyle(1));
         cardCruiseFull.setOnClickListener(v -> selectCruiseStyle(2));
-        cardBgDark.setOnClickListener(v -> selectBackgroundMode(0));
-        cardBgSemi.setOnClickListener(v -> selectBackgroundMode(1));
-        cardBgTransparent.setOnClickListener(v -> selectBackgroundMode(2));
+        if (cardBgDark != null) cardBgDark.setOnClickListener(v -> selectBackgroundMode(0));
+        if (cardBgSemi != null) cardBgSemi.setOnClickListener(v -> selectBackgroundMode(1));
+        if (cardBgTransparent != null) cardBgTransparent.setOnClickListener(v -> selectBackgroundMode(2));
         for (int i = 0; i < cardTrafficLightStyle.length; i++) {
             final int style = i;
             if (cardTrafficLightStyle[i] != null) {
@@ -1621,27 +1885,11 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 红绿灯倒计时 LED 字体开关
-        if (cbTrafficLightLedFontEnabled != null) {
-            cbTrafficLightLedFontEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                isTrafficLightLedFontEnabled = isChecked;
-                savePreferences();
-                if (tvTrafficLightLedFontStatus != null) {
-                    tvTrafficLightLedFontStatus.setText(isChecked ? "已启用 LED 字体风格" : "已使用系统默认字体");
-                }
-                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-                if (fwm != null) {
-                    fwm.refreshWindow();
-                }
-            });
-        }
-        if (cardTrafficLightLedFontToggle != null) {
-            cardTrafficLightLedFontToggle.setOnClickListener(v -> {
-                if (cbTrafficLightLedFontEnabled != null) {
-                    cbTrafficLightLedFontEnabled.toggle();
-                }
-            });
-        }
+        // 倒计时字体选择绑定
+        if (cardFontDefault != null) cardFontDefault.setOnClickListener(v -> selectCountdownFont(0));
+        if (cardFontOne != null) cardFontOne.setOnClickListener(v -> selectCountdownFont(1));
+        if (cardFontTwo != null) cardFontTwo.setOnClickListener(v -> selectCountdownFont(2));
+        if (cardFontThree != null) cardFontThree.setOnClickListener(v -> selectCountdownFont(3));
 
         if (cardClusterDisplaySelect != null) {
             cardClusterDisplaySelect.setOnClickListener(v -> showClusterDisplaySelectionDialog());
@@ -1764,6 +2012,27 @@ public class MainActivity extends AppCompatActivity {
             cardNormalCruiseInfoToggle.setOnClickListener(v -> {
                 if (cbNormalCruiseInfoEnabled != null) {
                     cbNormalCruiseInfoEnabled.toggle();
+                }
+            });
+        }
+
+        if (cbHideNormalCruiseSpeedEnabled != null) {
+            cbHideNormalCruiseSpeedEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                hideNormalCruiseSpeed = isChecked;
+                savePreferences();
+                if (tvHideNormalCruiseSpeedStatus != null) {
+                    tvHideNormalCruiseSpeedStatus.setText(isChecked ? "已隐藏常规巡航车速" : "常规巡航时显示车速");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
+        if (cardHideNormalCruiseSpeedToggle != null) {
+            cardHideNormalCruiseSpeedToggle.setOnClickListener(v -> {
+                if (cbHideNormalCruiseSpeedEnabled != null) {
+                    cbHideNormalCruiseSpeedEnabled.toggle();
                 }
             });
         }
@@ -1958,6 +2227,9 @@ public class MainActivity extends AppCompatActivity {
         if (menuSystemAppearance != null) {
             menuSystemAppearance.setOnClickListener(v -> switchMenu(0));
         }
+        if (menuColorSettings != null) {
+            menuColorSettings.setOnClickListener(v -> switchMenu(6));
+        }
         if (menuFeaturesAvoidance != null) {
             menuFeaturesAvoidance.setOnClickListener(v -> switchMenu(1));
         }
@@ -2004,6 +2276,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 1. Panels visibility
         if (panelSystemAppearance != null) panelSystemAppearance.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
+        if (panelColorSettings != null) panelColorSettings.setVisibility(index == 6 ? View.VISIBLE : View.GONE);
         if (panelFeaturesAvoidance != null) panelFeaturesAvoidance.setVisibility(index == 1 ? View.VISIBLE : View.GONE);
         if (panelLayoutNormal != null) panelLayoutNormal.setVisibility(index == 2 ? View.VISIBLE : View.GONE);
         if (panelLayoutMinimal != null) panelLayoutMinimal.setVisibility(index == 3 ? View.VISIBLE : View.GONE);
@@ -2012,6 +2285,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 2. Indicators visibility
         if (indicatorSystemAppearance != null) indicatorSystemAppearance.setVisibility(index == 0 ? View.VISIBLE : View.INVISIBLE);
+        if (indicatorColorSettings != null) indicatorColorSettings.setVisibility(index == 6 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorFeaturesAvoidance != null) indicatorFeaturesAvoidance.setVisibility(index == 1 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorLayoutNormal != null) indicatorLayoutNormal.setVisibility(index == 2 ? View.VISIBLE : View.INVISIBLE);
         if (indicatorLayoutMinimal != null) indicatorLayoutMinimal.setVisibility(index == 3 ? View.VISIBLE : View.INVISIBLE);
@@ -2020,6 +2294,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 3. Menu card background colors (selected gets #FF262626, others transparent)
         if (menuSystemAppearance != null) menuSystemAppearance.setCardBackgroundColor(ColorStateList.valueOf(index == 0 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
+        if (menuColorSettings != null) menuColorSettings.setCardBackgroundColor(ColorStateList.valueOf(index == 6 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuFeaturesAvoidance != null) menuFeaturesAvoidance.setCardBackgroundColor(ColorStateList.valueOf(index == 1 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuLayoutNormal != null) menuLayoutNormal.setCardBackgroundColor(ColorStateList.valueOf(index == 2 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
         if (menuLayoutMinimal != null) menuLayoutMinimal.setCardBackgroundColor(ColorStateList.valueOf(index == 3 ? Color.parseColor("#FF262626") : Color.TRANSPARENT));
@@ -2028,6 +2303,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 4. Menu text colors (selected gets #FFFFFFFF, others #FF888888)
         if (tvMenuSystemAppearance != null) tvMenuSystemAppearance.setTextColor(index == 0 ? Color.WHITE : Color.parseColor("#FF888888"));
+        if (tvMenuColorSettings != null) tvMenuColorSettings.setTextColor(index == 6 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuFeaturesAvoidance != null) tvMenuFeaturesAvoidance.setTextColor(index == 1 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuLayoutNormal != null) tvMenuLayoutNormal.setTextColor(index == 2 ? Color.WHITE : Color.parseColor("#FF888888"));
         if (tvMenuLayoutMinimal != null) tvMenuLayoutMinimal.setTextColor(index == 3 ? Color.WHITE : Color.parseColor("#FF888888"));
@@ -2387,5 +2663,239 @@ public class MainActivity extends AppCompatActivity {
             }
             chip.setBackground(bg);
         }
+    }
+
+    // --- Custom Color Settings logic ---
+
+    public interface OnColorSelectedListener {
+        void onColorSelected(int color);
+    }
+
+    private void resetToDefaultColors() {
+        bgColorDay = 0xE6F5F5F5;
+        bgColorNight = 0xCC121212;
+        textPrimaryDay = 0xFF1A1A1A;
+        textPrimaryNight = 0xFFFFFFFF;
+        textSecondaryDay = 0xFF333333;
+        textSecondaryNight = 0xBBFFFFFF;
+        textHintDay = 0xFF999999;
+        textHintNight = 0xFF888888;
+        normalTurnIconColorDay = 0xFFFFFFFF;
+        normalTurnIconColorNight = 0xFFFFFFFF;
+        normalTurnIconBgColorDay = 0xFF007D5E;
+        normalTurnIconBgColorNight = 0xFF007D5E;
+        fullMiddleBgColorDay = 0xFF0099FF;
+        fullMiddleBgColorNight = 0xFF0099FF;
+        updateColorPreviews();
+    }
+
+    private void updateColorPreviews() {
+        updateColorPreview(viewColorPreviewBgDay, bgColorDay);
+        updateColorPreview(viewColorPreviewBgNight, bgColorNight);
+        updateColorPreview(viewColorPreviewPrimaryDay, textPrimaryDay);
+        updateColorPreview(viewColorPreviewPrimaryNight, textPrimaryNight);
+        updateColorPreview(viewColorPreviewSecondaryDay, textSecondaryDay);
+        updateColorPreview(viewColorPreviewSecondaryNight, textSecondaryNight);
+        updateColorPreview(viewColorPreviewHintDay, textHintDay);
+        updateColorPreview(viewColorPreviewHintNight, textHintNight);
+        updateColorPreview(viewColorPreviewNormalTurnIconDay, normalTurnIconColorDay);
+        updateColorPreview(viewColorPreviewNormalTurnIconNight, normalTurnIconColorNight);
+        updateColorPreview(viewColorPreviewNormalTurnBgDay, normalTurnIconBgColorDay);
+        updateColorPreview(viewColorPreviewNormalTurnBgNight, normalTurnIconBgColorNight);
+        updateColorPreview(viewColorPreviewFullMiddleBgDay, fullMiddleBgColorDay);
+        updateColorPreview(viewColorPreviewFullMiddleBgNight, fullMiddleBgColorNight);
+    }
+
+    private void updateColorPreview(View view, int color) {
+        if (view == null) return;
+        GradientDrawable gd = new GradientDrawable();
+        gd.setShape(GradientDrawable.RECTANGLE);
+        gd.setColor(color);
+        gd.setCornerRadius(dpToPx(6));
+        gd.setStroke(dpToPx(1), 0x55FFFFFF); // Add thin semi-transparent white border
+        view.setBackground(gd);
+    }
+
+    private void refreshFloatingWindow() {
+        FloatingWindowManager manager = FloatingWindowManager.getInstance();
+        if (manager != null) {
+            manager.applyThemeColor(themeColor);
+        }
+    }
+
+    private void showColorPickerDialog(String title, int initialColor, OnColorSelectedListener listener) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_color_picker, null);
+        if (dialogView == null) return;
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        // Ensure background is transparent so custom layout round corners show properly
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        if (tvTitle != null) tvTitle.setText(title);
+
+        ColorWheelView colorWheel = dialogView.findViewById(R.id.color_wheel);
+        SeekBar sbBrightness = dialogView.findViewById(R.id.sb_brightness);
+        SeekBar sbAlpha = dialogView.findViewById(R.id.sb_alpha);
+        View viewPreviewColor = dialogView.findViewById(R.id.view_preview_color);
+        EditText etHexInput = dialogView.findViewById(R.id.et_hex_input);
+
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel_picker);
+        Button btnConfirm = dialogView.findViewById(R.id.btn_confirm_picker);
+
+        // Keep HSV + Alpha states
+        final float[] hsv = new float[3];
+        Color.colorToHSV(initialColor, hsv);
+        final int[] curAlpha = {Color.alpha(initialColor)};
+
+        // Helper to update preview card and sliders
+        Runnable updateUI = new Runnable() {
+            @Override
+            public void run() {
+                int rgbColor = Color.HSVToColor(hsv);
+                int finalColor = (curAlpha[0] << 24) | (rgbColor & 0x00FFFFFF);
+
+                // 1. Update circular wheel pointer color (internal view updates it)
+                if (colorWheel != null) {
+                    colorWheel.setColor(hsv[0], hsv[1]);
+                }
+
+                // 2. Update preview color box background
+                if (viewPreviewColor != null) {
+                    GradientDrawable previewDrawable = new GradientDrawable();
+                    previewDrawable.setColor(finalColor);
+                    previewDrawable.setCornerRadius(dpToPx(4));
+                    previewDrawable.setStroke(dpToPx(1), 0x33FFFFFF);
+                    viewPreviewColor.setBackground(previewDrawable);
+                }
+
+                // 3. Update brightness seekbar background gradient
+                if (sbBrightness != null) {
+                    int pureColor = Color.HSVToColor(new float[]{hsv[0], hsv[1], 1f});
+                    GradientDrawable brightnessGrad = new GradientDrawable(
+                        GradientDrawable.Orientation.LEFT_RIGHT,
+                        new int[]{ 0xFF000000, pureColor }
+                    );
+                    brightnessGrad.setCornerRadius(dpToPx(6));
+                    sbBrightness.setBackground(brightnessGrad);
+                    sbBrightness.setProgress((int) (hsv[2] * 100));
+                }
+
+                // 4. Update alpha seekbar background gradient
+                if (sbAlpha != null) {
+                    int transparentColor = 0x00FFFFFF & rgbColor;
+                    int opaqueColor = 0xFF000000 | rgbColor;
+                    GradientDrawable alphaGrad = new GradientDrawable(
+                        GradientDrawable.Orientation.LEFT_RIGHT,
+                        new int[]{ transparentColor, opaqueColor }
+                    );
+                    alphaGrad.setCornerRadius(dpToPx(6));
+                    sbAlpha.setBackground(alphaGrad);
+                    sbAlpha.setProgress(curAlpha[0]);
+                }
+
+                // 5. Update Hex Input box without losing focus
+                if (etHexInput != null && !etHexInput.hasFocus()) {
+                    etHexInput.setText(String.format("#%08X", finalColor));
+                }
+            }
+        };
+
+        // Initialize UI with initial color
+        updateUI.run();
+
+        // 1. Color Wheel Listener
+        if (colorWheel != null) {
+            colorWheel.setOnColorSelectedListener((hue, saturation) -> {
+                hsv[0] = hue;
+                hsv[1] = saturation;
+                updateUI.run();
+            });
+        }
+
+        // 2. Brightness Slider Listener
+        if (sbBrightness != null) {
+            sbBrightness.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        hsv[2] = progress / 100f;
+                        updateUI.run();
+                    }
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        // 3. Alpha Slider Listener
+        if (sbAlpha != null) {
+            sbAlpha.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        curAlpha[0] = progress;
+                        updateUI.run();
+                    }
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        // 4. Hex Input Text Box Listener
+        if (etHexInput != null) {
+            etHexInput.addTextChangedListener(new android.text.TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(android.text.Editable s) {
+                    if (etHexInput.hasFocus()) {
+                        String input = s.toString().trim();
+                        if (input.startsWith("#")) {
+                            input = input.substring(1);
+                        }
+                        if (input.length() == 8) { // AARRGGBB
+                            try {
+                                int color = (int) Long.parseLong(input, 16);
+                                Color.colorToHSV(color, hsv);
+                                curAlpha[0] = Color.alpha(color);
+                                updateUI.run();
+                            } catch (NumberFormatException ignored) {}
+                        } else if (input.length() == 6) { // RRGGBB
+                            try {
+                                int color = 0xFF000000 | (int) Long.parseLong(input, 16);
+                                Color.colorToHSV(color, hsv);
+                                curAlpha[0] = 255;
+                                updateUI.run();
+                            } catch (NumberFormatException ignored) {}
+                        }
+                    }
+                }
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                if (listener != null) {
+                    int rgbColor = Color.HSVToColor(hsv);
+                    int finalColor = (curAlpha[0] << 24) | (rgbColor & 0x00FFFFFF);
+                    listener.onColorSelected(finalColor);
+                }
+                dialog.dismiss();
+            });
+        }
+
+        dialog.show();
     }
 }

@@ -224,4 +224,29 @@ public abstract class BaseFloatingWindow {
         if (fwm == null) return 1.0f;
         return isClusterWindow ? fwm.getClusterScale() : fwm.getScale();
     }
+
+    // --- Custom Color Helpers ---
+    protected int getPrimaryTextColor(boolean isNightMode) {
+        return isNightMode ? 
+            sp.getInt("text_primary_night", TEXT_PRIMARY_DARK) : 
+            sp.getInt("text_primary_day", TEXT_PRIMARY_LIGHT);
+    }
+
+    protected int getSecondaryTextColor(boolean isNightMode) {
+        return isNightMode ? 
+            sp.getInt("text_secondary_night", TEXT_SECONDARY_DARK) : 
+            sp.getInt("text_secondary_day", TEXT_SECONDARY_LIGHT);
+    }
+
+    protected int getHintTextColor(boolean isNightMode) {
+        return isNightMode ? 
+            sp.getInt("text_hint_night", TEXT_HINT_DARK) : 
+            sp.getInt("text_hint_day", TEXT_HINT_LIGHT);
+    }
+
+    protected int getWindowBgColor(boolean isNightMode) {
+        return isNightMode ? 
+            sp.getInt("bg_color_night", 0xCC121212) : 
+            sp.getInt("bg_color_day", 0xE6F5F5F5);
+    }
 }

@@ -15,6 +15,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
 
     private int themeColor = Color.BLACK;
     private ImageView ivTurnIcon;
+    private View llTurnIconContainer;
     private TextView tvDistanceNum;
     private TextView tvDistanceUnit;
     private TextView tvAction;
@@ -25,6 +26,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
     private View layoutInfoBar;
     private TextView tvExitInfo;
     private TextView tvNaviLightCount;
+    private ImageView ivNaviLightIcon;
     private View vDivider;
     private LaneLineView laneLineView;
     private View layoutBottomContainer;
@@ -55,6 +57,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
     @Override
     protected void initViews() {
         ivTurnIcon = floatingView.findViewById(R.id.iv_turn_icon);
+        llTurnIconContainer = floatingView.findViewById(R.id.ll_turn_icon_container);
         tvDistanceNum = floatingView.findViewById(R.id.tv_distance_num);
         tvDistanceUnit = floatingView.findViewById(R.id.tv_distance_unit);
         tvAction = floatingView.findViewById(R.id.tv_action);
@@ -65,6 +68,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         layoutInfoBar = floatingView.findViewById(R.id.layout_info_bar);
         tvExitInfo = floatingView.findViewById(R.id.tv_exit_info);
         tvNaviLightCount = floatingView.findViewById(R.id.tv_navi_light_count);
+        ivNaviLightIcon = floatingView.findViewById(R.id.iv_navi_light_icon);
         vDivider = floatingView.findViewById(R.id.v_divider);
         laneLineView = floatingView.findViewById(R.id.lane_line_view);
         cameraWarningView = floatingView.findViewById(R.id.ll_camera_dist_group);
@@ -167,9 +171,9 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         }
         if (tvNaviLightCount != null) {
             if (remainLightNum > 0) {
-                tvNaviLightCount.setText("🚦" + remainLightNum + "个");
+                tvNaviLightCount.setText(remainLightNum + "个");
             } else {
-                tvNaviLightCount.setText("🚦--");
+                tvNaviLightCount.setText("--");
             }
         }
     }
@@ -246,65 +250,14 @@ public class NormalNaviWindow extends BaseFloatingWindow {
     @Override
     public void applyThemeColor(int themeColor) {
         this.themeColor = themeColor;
-        int backgroundMode = sp.getInt("background_mode", 0);
-        boolean isDark = isDarkThemeColor(themeColor);
-        int accentColor = isDark ? Color.WHITE : themeColor;
-
-        View targetBgView = layoutBottomContainer != null ? layoutBottomContainer : layoutInfoBar;
-        if (targetBgView != null) {
-            int cornerPx = Math.round(dpToPx(12) * getWindowScale());
-            if (backgroundMode == 2) {
-                targetBgView.setBackground(null);
-            } else if (backgroundMode == 1) {
-                GradientDrawable bgDrawable = new GradientDrawable();
-                bgDrawable.setShape(GradientDrawable.RECTANGLE);
-                int semiColor = (themeColor & 0x00FFFFFF) | 0x80000000;
-                bgDrawable.setColor(semiColor);
-                bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
-                targetBgView.setBackground(bgDrawable);
-            } else {
-                int bgColor;
-                if (isDark) {
-                    bgColor = 0xFF242424;
-                } else {
-                    int r = (themeColor >> 16) & 0xFF;
-                    int g = (themeColor >> 8) & 0xFF;
-                    int b = themeColor & 0xFF;
-                    bgColor = 0xFF000000
-                            | ((int) (r * 0.20f) << 16)
-                            | ((int) (g * 0.20f) << 8)
-                            | (int) (b * 0.20f);
-                }
-                GradientDrawable bgDrawable = new GradientDrawable();
-                bgDrawable.setShape(GradientDrawable.RECTANGLE);
-                bgDrawable.setColor(bgColor);
-                bgDrawable.setCornerRadii(new float[]{0, 0, 0, 0, cornerPx, cornerPx, cornerPx, cornerPx});
-                targetBgView.setBackground(bgDrawable);
-            }
-        }
+        updateBottomContainerBackground();
     }
 
     @Override
     public void applyDayNightTextColors(boolean isNightMode) {
         this.isNightMode = isNightMode;
-        int textPrimary;
-        int textSecondary;
-
-        if (sp.getInt("background_mode", 0) == 2 && themeColor != 0xFF1A1A1A) {
-            // 全透明 + 非默认黑色主题：文字颜色跟随主题
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (accentColor == Color.WHITE) {
-                textPrimary = TEXT_PRIMARY_DARK;
-                textSecondary = TEXT_SECONDARY_DARK;
-            } else {
-                textPrimary = accentColor;
-                textSecondary = accentColor;
-            }
-        } else {
-            // 跟随高德昼夜
-            textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-            textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
+        int textPrimary = getPrimaryTextColor(isNightMode);
+        int textSecondary = getSecondaryTextColor(isNightMode);
 
         if (tvDistanceNum != null) tvDistanceNum.setTextColor(textPrimary);
         if (tvDistanceUnit != null) tvDistanceUnit.setTextColor(textPrimary);
@@ -313,8 +266,19 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         if (tvSummary != null) tvSummary.setTextColor(textSecondary);
         if (tvEta != null) tvEta.setTextColor(textSecondary);
         if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(textPrimary);
-        if (ivTurnIcon != null) ivTurnIcon.setColorFilter(textPrimary);
-        if (vDivider != null) vDivider.setBackgroundColor(textPrimary);
+//        if (ivNaviLightIcon != null) ivNaviLightIcon.setColorFilter(textPrimary);
+        if (ivTurnIcon != null) {
+            int turnIconColor = isNightMode ? sp.getInt("normal_turn_icon_color_night", 0xFFFFFFFF) : sp.getInt("normal_turn_icon_color_day", 0xFFFFFFFF);
+            ivTurnIcon.setColorFilter(turnIconColor);
+        }
+        if (llTurnIconContainer != null) {
+            int turnBgColor = isNightMode ? sp.getInt("normal_turn_icon_bg_color_night", 0xFF007D5E) : sp.getInt("normal_turn_icon_bg_color_day", 0xFF007D5E);
+            Drawable bg = llTurnIconContainer.getBackground();
+            if (bg instanceof GradientDrawable) {
+                ((GradientDrawable) bg.mutate()).setColor(turnBgColor);
+            }
+        }
+        if (vDivider != null) vDivider.setBackgroundColor(textSecondary);
         if (tvExitInfo != null) {
             tvExitInfo.setTextColor(textSecondary);
             Drawable exitBg = tvExitInfo.getBackground();
@@ -332,6 +296,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         if (sapaDivider != null) {
             sapaDivider.setBackgroundColor(isNightMode ? 0x2AFFFFFF : 0x2A000000);
         }
+        updateBottomContainerBackground();
     }
 
     @Override
@@ -344,7 +309,13 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         if (tvEta != null) tvEta.setTextColor(TEXT_SECONDARY_DARK);
         if (tvNaviLightCount != null) tvNaviLightCount.setTextColor(TEXT_PRIMARY_DARK);
         if (ivTurnIcon != null) ivTurnIcon.clearColorFilter();
-        if (vDivider != null) vDivider.setBackgroundColor(TEXT_PRIMARY_DARK);
+        if (llTurnIconContainer != null) {
+            Drawable bg = llTurnIconContainer.getBackground();
+            if (bg instanceof GradientDrawable) {
+                ((GradientDrawable) bg.mutate()).setColor(0xFF007D5E);
+            }
+        }
+        if (vDivider != null) vDivider.setBackgroundColor(TEXT_SECONDARY_DARK);
         if (tvExitInfo != null) {
             tvExitInfo.setTextColor(TEXT_SECONDARY_DARK);
             Drawable exitBg = tvExitInfo.getBackground();
@@ -446,5 +417,52 @@ public class NormalNaviWindow extends BaseFloatingWindow {
             }
             ivTurnIcon.setAlpha(1f);
         }
+    }
+
+    private void updateBottomContainerBackground() {
+        if (layoutBottomContainer != null) {
+            int bgColor = getWindowBgColor(isNightMode);
+            int bottomBgColor = getBottomBgColor(bgColor, isNightMode);
+
+            GradientDrawable bottomGrad = new GradientDrawable();
+            bottomGrad.setShape(GradientDrawable.RECTANGLE);
+            bottomGrad.setColor(bottomBgColor);
+            
+            float r = dpToPx(16);
+            bottomGrad.setCornerRadii(new float[]{0, 0, 0, 0, r, r, r, r});
+            layoutBottomContainer.setBackground(bottomGrad);
+        }
+    }
+
+    private int getBottomBgColor(int bgColor, boolean isNight) {
+        int a = (bgColor >> 24) & 0xFF;
+        int r = (bgColor >> 16) & 0xFF;
+        int g = (bgColor >> 8) & 0xFF;
+        int b = bgColor & 0xFF;
+
+        if (isNight) {
+            int avg = (r + g + b) / 3;
+            if (avg < 40) {
+                r = Math.min(255, r + 15);
+                g = Math.min(255, g + 15);
+                b = Math.min(255, b + 15);
+            } else {
+                r = Math.max(0, r - 15);
+                g = Math.max(0, g - 15);
+                b = Math.max(0, b - 15);
+            }
+        } else {
+            int avg = (r + g + b) / 3;
+            if (avg < 100) {
+                r = Math.min(255, r + 20);
+                g = Math.min(255, g + 20);
+                b = Math.min(255, b + 20);
+            } else {
+                r = Math.max(0, r - 20);
+                g = Math.max(0, g - 20);
+                b = Math.max(0, b - 20);
+            }
+        }
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }

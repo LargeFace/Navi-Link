@@ -18,6 +18,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
     private TextView tvRoadNameMin;
     private TextView tvMinDirection;
     private TextView tvMinLightCount;
+    private View layoutMinLightCountGroup;
     private TextView tvMinSpeedLimit;
     private View minDividerMin;
     private View naviMinDivider;
@@ -49,6 +50,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         tvRoadNameMin = floatingView.findViewById(R.id.tv_road_name_min);
         tvMinDirection = floatingView.findViewById(R.id.tv_min_direction);
         tvMinLightCount = floatingView.findViewById(R.id.tv_min_light_count);
+        layoutMinLightCountGroup = floatingView.findViewById(R.id.layout_min_light_count_group);
         tvMinSpeedLimit = floatingView.findViewById(R.id.tv_min_speed_limit);
         minDividerMin = floatingView.findViewById(R.id.min_divider);
         naviMinDivider = floatingView.findViewById(R.id.navi_min_divider);
@@ -127,15 +129,8 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
                 }
                 tvMinSpeed.setAlpha(1f);
                 isOverspeedBlinking = false;
-                // 全透明 + 黑色主题：速度颜色跟随昼夜（打开主题色调开关时则走主题色）
-                boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-                if (!accentNaviInfo && themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                    tvMinSpeed.setTextColor(isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-                } else {
-                    // 恢复正常主题色
-                    int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-                    tvMinSpeed.setTextColor(accentColor);
-                }
+                // 恢复正常车速颜色（跟随主文字自定义颜色）
+                tvMinSpeed.setTextColor(getPrimaryTextColor(isNightMode));
             }
             tvMinSpeed.setVisibility(speedEnabled ? View.VISIBLE : View.GONE);
         }
@@ -184,10 +179,10 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         if (tvMinLightCount != null) {
             boolean lightCountEnabled = sp.getBoolean("minimal_light_count_enabled", false);
             if (lightCountEnabled && remainLightNum > 0) {
-                tvMinLightCount.setText("🚦" + remainLightNum);
-                tvMinLightCount.setVisibility(View.VISIBLE);
+                tvMinLightCount.setText(remainLightNum+"个");
+                if (layoutMinLightCountGroup != null) layoutMinLightCountGroup.setVisibility(View.VISIBLE);
             } else {
-                tvMinLightCount.setVisibility(View.GONE);
+                if (layoutMinLightCountGroup != null) layoutMinLightCountGroup.setVisibility(View.GONE);
             }
         }
         if (tvMinSpeedLimit != null) {
@@ -257,94 +252,39 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
     @Override
     public void applyThemeColor(int themeColor) {
         this.themeColor = themeColor;
-        int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
+        int customPrimaryColor = getPrimaryTextColor(isNightMode);
         if (tvMinSpeed != null && !isOverspeedBlinking) {
-            // 全透明 + 黑色主题：速度颜色跟随昼夜（打开主题色调开关时则走主题色）
-            if (!accentNaviInfo && themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                boolean isNight = sp.getBoolean("is_night_mode", true);
-                tvMinSpeed.setTextColor(isNight ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-            } else {
-                tvMinSpeed.setTextColor(accentColor);
-            }
-        }
-
-        if (accentNaviInfo) {
-            if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(accentColor);
-            if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(accentColor);
-            if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(accentColor);
-            if (ivActionIconMin != null) ivActionIconMin.setColorFilter(accentColor);
-            if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(accentColor);
-            if (tvMinDirection != null) tvMinDirection.setTextColor(accentColor);
-            if (tvMinLightCount != null) tvMinLightCount.setTextColor(accentColor);
+            tvMinSpeed.setTextColor(customPrimaryColor);
         }
     }
 
     @Override
     public void applyDayNightTextColors(boolean isNightMode) {
         this.isNightMode = isNightMode;
-        int textPrimary;
-        int textSecondary;
-
-        if (sp.getInt("background_mode", 0) == 2 && themeColor != 0xFF1A1A1A) {
-            // 全透明 + 非默认黑色主题：文字颜色跟随主题
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (accentColor == Color.WHITE) {
-                textPrimary = TEXT_PRIMARY_DARK;
-                textSecondary = TEXT_SECONDARY_DARK;
-            } else {
-                textPrimary = accentColor;
-                textSecondary = accentColor;
-            }
-        } else {
-            // 跟随高德昼夜
-            textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-            textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
+        int textPrimary = getPrimaryTextColor(isNightMode);
+        int textSecondary = getSecondaryTextColor(isNightMode);
 
         if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(textPrimary);
-        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(textSecondary);
+        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(textPrimary);
         if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(textSecondary);
         if (ivActionIconMin != null) ivActionIconMin.setColorFilter(textPrimary);
         if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(textPrimary);
         if (tvMinDirection != null) tvMinDirection.setTextColor(textPrimary);
         if (tvMinLightCount != null) tvMinLightCount.setTextColor(textPrimary);
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-        if (accentNaviInfo) {
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(accentColor);
-            if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(accentColor);
-            if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(accentColor);
-            if (ivActionIconMin != null) ivActionIconMin.setColorFilter(accentColor);
-            if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(accentColor);
-            if (tvMinDirection != null) tvMinDirection.setTextColor(accentColor);
-            if (tvMinLightCount != null) tvMinLightCount.setTextColor(accentColor);
+        if (tvMinSpeed != null && !isOverspeedBlinking) {
+            tvMinSpeed.setTextColor(textPrimary);
         }
     }
 
     @Override
     public void resetToDefaultTextColors() {
         if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(TEXT_PRIMARY_DARK);
-        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(TEXT_SECONDARY_DARK);
+        if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(TEXT_PRIMARY_DARK);
         if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(TEXT_SECONDARY_DARK);
         if (ivActionIconMin != null) ivActionIconMin.clearColorFilter();
         if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(TEXT_PRIMARY_DARK);
         if (tvMinDirection != null) tvMinDirection.setTextColor(TEXT_PRIMARY_DARK);
         if (tvMinLightCount != null) tvMinLightCount.setTextColor(TEXT_PRIMARY_DARK);
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-        if (accentNaviInfo) {
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (tvDistanceNumMin != null) tvDistanceNumMin.setTextColor(accentColor);
-            if (tvDistanceUnitMin != null) tvDistanceUnitMin.setTextColor(accentColor);
-            if (tvRoadNameMin != null) tvRoadNameMin.setTextColor(accentColor);
-            if (ivActionIconMin != null) ivActionIconMin.setColorFilter(accentColor);
-            if (tvMinSpeedUnit != null) tvMinSpeedUnit.setTextColor(accentColor);
-            if (tvMinDirection != null) tvMinDirection.setTextColor(accentColor);
-            if (tvMinLightCount != null) tvMinLightCount.setTextColor(accentColor);
-        }
     }
 
     @Override

@@ -89,15 +89,8 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
                 }
                 tvCruiseSpeed.setAlpha(1f);
                 isOverspeedBlinking = false;
-                // 全透明 + 黑色主题：速度颜色跟随昼夜（打开主题色调开关时则走主题色）
-                boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-                if (!accentNaviInfo && themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                    tvCruiseSpeed.setTextColor(isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-                } else {
-                    // 恢复正常主题色
-                    int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-                    tvCruiseSpeed.setTextColor(accentColor);
-                }
+                // 恢复正常车速颜色（跟随主文字自定义颜色）
+                tvCruiseSpeed.setTextColor(getPrimaryTextColor(isNightMode));
             }
             tvCruiseSpeed.setVisibility(speedEnabled ? View.VISIBLE : View.GONE);
         }
@@ -247,55 +240,19 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
     @Override
     public void applyThemeColor(int themeColor) {
         this.themeColor = themeColor;
-        int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
+        int customPrimaryColor = getPrimaryTextColor(isNightMode);
         if (tvCruiseSpeed != null && !isOverspeedBlinking) {
-            // 全透明 + 黑色主题：速度颜色跟随昼夜（打开主题色调开关时则走主题色）
-            if (!accentNaviInfo && themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                boolean isNight = sp.getBoolean("is_night_mode", true);
-                tvCruiseSpeed.setTextColor(isNight ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-            } else {
-                tvCruiseSpeed.setTextColor(accentColor);
-            }
+            tvCruiseSpeed.setTextColor(customPrimaryColor);
         }
         if (tvCruiseUnit != null && !isOverspeedBlinking) {
-            if (!accentNaviInfo && themeColor == 0xFF1A1A1A && sp.getInt("background_mode", 0) == 2) {
-                boolean isNight = sp.getBoolean("is_night_mode", true);
-                tvCruiseUnit.setTextColor(isNight ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT);
-            } else {
-                tvCruiseUnit.setTextColor(accentColor);
-            }
-        }
-
-        if (accentNaviInfo) {
-            if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(accentColor);
-            if (tvCruiseUnit != null) tvCruiseUnit.setTextColor(accentColor);
-            if (tvCruiseDirection != null) tvCruiseDirection.setTextColor(accentColor);
+            tvCruiseUnit.setTextColor(customPrimaryColor);
         }
     }
 
     @Override
     public void applyDayNightTextColors(boolean isNightMode) {
         this.isNightMode = isNightMode;
-        int textPrimary;
-        int textSecondary;
-
-        if (sp.getInt("background_mode", 0) == 2 && themeColor != 0xFF1A1A1A) {
-            // 全透明 + 非默认黑色主题：文字颜色跟随主题
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (accentColor == Color.WHITE) {
-                textPrimary = TEXT_PRIMARY_DARK;
-                textSecondary = TEXT_SECONDARY_DARK;
-            } else {
-                textPrimary = accentColor;
-                textSecondary = accentColor;
-            }
-        } else {
-            // 跟随高德昼夜
-            textPrimary = isNightMode ? TEXT_PRIMARY_DARK : TEXT_PRIMARY_LIGHT;
-            textSecondary = isNightMode ? TEXT_SECONDARY_DARK : TEXT_SECONDARY_LIGHT;
-        }
+        int textPrimary = getPrimaryTextColor(isNightMode);
 
         if (tvCruiseRoadName != null) {
             tvCruiseRoadName.setTextColor(textPrimary);
@@ -306,13 +263,8 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
         if (tvCruiseUnit != null) {
             tvCruiseUnit.setTextColor(textPrimary);
         }
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-        if (accentNaviInfo) {
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(accentColor);
-            if (tvCruiseUnit != null) tvCruiseUnit.setTextColor(accentColor);
-            if (tvCruiseDirection != null) tvCruiseDirection.setTextColor(accentColor);
+        if (tvCruiseSpeed != null && !isOverspeedBlinking) {
+            tvCruiseSpeed.setTextColor(textPrimary);
         }
     }
 
@@ -326,14 +278,6 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
         }
         if (tvCruiseUnit != null) {
             tvCruiseUnit.setTextColor(TEXT_PRIMARY_DARK);
-        }
-
-        boolean accentNaviInfo = sp.getBoolean("minimal_accent_navi_info_enabled", false);
-        if (accentNaviInfo) {
-            int accentColor = isDarkThemeColor(themeColor) ? Color.WHITE : themeColor;
-            if (tvCruiseRoadName != null) tvCruiseRoadName.setTextColor(accentColor);
-            if (tvCruiseUnit != null) tvCruiseUnit.setTextColor(accentColor);
-            if (tvCruiseDirection != null) tvCruiseDirection.setTextColor(accentColor);
         }
     }
 
