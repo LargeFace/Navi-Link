@@ -23,7 +23,7 @@
         tools:targetApi="31">
         <!-- 透明路由入口，无UI，仅做权限/状态判断后分发 -->
         <activity
-            android:name=".RouterActivity"
+            android:name=".activity.RouterActivity"
             android:exported="true"
             android:theme="@style/Theme.Transparent"
             android:launchMode="singleTop">
@@ -34,25 +34,25 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true"
             android:launchMode="singleTop" />
 
         <activity
-            android:name=".ClusterPositionActivity"
+            android:name=".activity.ClusterPositionActivity"
             android:exported="false"
             android:theme="@style/Theme.NaviLink"
             android:launchMode="singleTop" />
 
         <service
-            android:name=".AutoMapService"
+            android:name=".service.AutoMapService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse"
             tools:targetApi="q" />
 
         <receiver
-            android:name=".BootStartReceiver"
+            android:name=".receiver.BootStartReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">
@@ -89,7 +89,7 @@
 
         <!-- 安装会话结果回调接收器（PackageInstaller） -->
         <receiver
-            android:name=".InstallResultReceiver"
+            android:name=".receiver.InstallResultReceiver"
             android:exported="false" />
 
     </application>
