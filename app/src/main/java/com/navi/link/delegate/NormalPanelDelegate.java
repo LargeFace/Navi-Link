@@ -1,16 +1,9 @@
 package com.navi.link.delegate;
+
 import com.navi.link.R;
-import com.navi.link.BuildConfig;
-import com.navi.link.activity.*;
-import com.navi.link.delegate.*;
-import com.navi.link.window.*;
-import com.navi.link.view.*;
-import com.navi.link.receiver.*;
-import com.navi.link.service.*;
-import com.navi.link.utils.*;
+import com.navi.link.activity.MainActivity;
+import com.navi.link.window.FloatingWindowManager;
 
-
-import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.widget.SwitchCompat;
 import com.google.android.material.card.MaterialCardView;
@@ -26,21 +19,21 @@ public class NormalPanelDelegate {
     private TextView tvHideTurnIconBgStatus;
     private MaterialCardView cardHideTurnIconBgToggle;
 
-    private SwitchCompat cbNormalCruiseInfoEnabled;
-    private TextView tvNormalCruiseInfoStatus;
-    private MaterialCardView cardNormalCruiseInfoToggle;
-
-    private SwitchCompat cbHideNormalCruiseSpeedEnabled;
-    private TextView tvHideNormalCruiseSpeedStatus;
-    private MaterialCardView cardHideNormalCruiseSpeedToggle;
-
+    private MaterialCardView cardNormalTmcToggle;
     private SwitchCompat cbNormalTmcEnabled;
     private TextView tvNormalTmcStatus;
-    private MaterialCardView cardNormalTmcToggle;
 
+    private MaterialCardView cardNormalBottomInfoToggle;
     private SwitchCompat cbNormalBottomInfoEnabled;
     private TextView tvNormalBottomInfoStatus;
-    private MaterialCardView cardNormalBottomInfoToggle;
+
+    private MaterialCardView cardNormalCruiseInfoToggle;
+    private SwitchCompat cbNormalCruiseInfoEnabled;
+    private TextView tvNormalCruiseInfoStatus;
+
+    private MaterialCardView cardHideNormalCruiseSpeedToggle;
+    private SwitchCompat cbHideNormalCruiseSpeedEnabled;
+    private TextView tvHideNormalCruiseSpeedStatus;
 
     public NormalPanelDelegate(MainActivity activity) {
         this.activity = activity;
@@ -55,9 +48,9 @@ public class NormalPanelDelegate {
         tvHideTurnIconBgStatus = activity.findViewById(R.id.tv_hide_turn_icon_bg_status);
         cardHideTurnIconBgToggle = activity.findViewById(R.id.card_hide_turn_icon_bg_toggle);
 
+        cardNormalCruiseInfoToggle = activity.findViewById(R.id.card_normal_cruise_info_toggle);
         cbNormalCruiseInfoEnabled = activity.findViewById(R.id.cb_normal_cruise_info_enabled);
         tvNormalCruiseInfoStatus = activity.findViewById(R.id.tv_normal_cruise_info_status);
-        cardNormalCruiseInfoToggle = activity.findViewById(R.id.card_normal_cruise_info_toggle);
 
         cbHideNormalCruiseSpeedEnabled = activity.findViewById(R.id.cb_hide_normal_cruise_speed_enabled);
         tvHideNormalCruiseSpeedStatus = activity.findViewById(R.id.tv_hide_normal_cruise_speed_status);
@@ -74,128 +67,156 @@ public class NormalPanelDelegate {
         setupListeners();
     }
 
-    private void setupListeners() {
-        cbNormalLaneEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.normalLaneEnabled = isChecked;
-            activity.savePreferences();
-            if (tvNormalLaneStatus != null) {
-                tvNormalLaneStatus.setText(isChecked ? "车道线已启用" : "车道线已禁用");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+    public void setupListeners() {
+        if (cbNormalLaneEnabled != null) {
+            cbNormalLaneEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.normalLaneEnabled = isChecked;
+                activity.savePreferences();
+                if (tvNormalLaneStatus != null) {
+                    tvNormalLaneStatus.setText(isChecked ? "车道线已启用" : "车道线已禁用");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardNormalLaneToggle != null) {
-            cardNormalLaneToggle.setOnClickListener(v -> cbNormalLaneEnabled.toggle());
+            cardNormalLaneToggle.setOnClickListener(v -> {
+                if (cbNormalLaneEnabled != null) cbNormalLaneEnabled.toggle();
+            });
         }
 
-        cbHideTurnIconBg.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.hideTurnIconBg = isChecked;
-            activity.savePreferences();
-            if (tvHideTurnIconBgStatus != null) {
-                tvHideTurnIconBgStatus.setText(isChecked ? "背景已隐藏" : "背景已显示");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+        if (cbHideTurnIconBg != null) {
+            cbHideTurnIconBg.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.hideTurnIconBg = isChecked;
+                activity.savePreferences();
+                if (tvHideTurnIconBgStatus != null) {
+                    tvHideTurnIconBgStatus.setText(isChecked ? "背景已隐藏" : "背景已显示");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardHideTurnIconBgToggle != null) {
-            cardHideTurnIconBgToggle.setOnClickListener(v -> cbHideTurnIconBg.toggle());
+            cardHideTurnIconBgToggle.setOnClickListener(v -> {
+                if (cbHideTurnIconBg != null) cbHideTurnIconBg.toggle();
+            });
         }
 
-        cbNormalCruiseInfoEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.normalCruiseInfoEnabled = isChecked;
-            activity.savePreferences();
-            if (tvNormalCruiseInfoStatus != null) {
-                tvNormalCruiseInfoStatus.setText(isChecked ? "第一排图文信息已启用" : "第一排图文信息已禁用");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+        if (cbNormalCruiseInfoEnabled != null) {
+            cbNormalCruiseInfoEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.normalCruiseInfoEnabled = isChecked;
+                activity.savePreferences();
+                if (tvNormalCruiseInfoStatus != null) {
+                    tvNormalCruiseInfoStatus.setText(isChecked ? "第一排图文信息已启用" : "第一排图文信息已禁用");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardNormalCruiseInfoToggle != null) {
-            cardNormalCruiseInfoToggle.setOnClickListener(v -> cbNormalCruiseInfoEnabled.toggle());
+            cardNormalCruiseInfoToggle.setOnClickListener(v -> {
+                if (cbNormalCruiseInfoEnabled != null) cbNormalCruiseInfoEnabled.toggle();
+            });
         }
 
-        cbHideNormalCruiseSpeedEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.hideNormalCruiseSpeed = isChecked;
-            activity.savePreferences();
-            if (tvHideNormalCruiseSpeedStatus != null) {
-                tvHideNormalCruiseSpeedStatus.setText(isChecked ? "已隐藏常规巡航车速" : "常规巡航时显示车速");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+        if (cbHideNormalCruiseSpeedEnabled != null) {
+            cbHideNormalCruiseSpeedEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.hideNormalCruiseSpeed = isChecked;
+                activity.savePreferences();
+                if (tvHideNormalCruiseSpeedStatus != null) {
+                    tvHideNormalCruiseSpeedStatus.setText(isChecked ? "已隐藏常规巡航车速" : "常规巡航时显示车速");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardHideNormalCruiseSpeedToggle != null) {
-            cardHideNormalCruiseSpeedToggle.setOnClickListener(v -> cbHideNormalCruiseSpeedEnabled.toggle());
+            cardHideNormalCruiseSpeedToggle.setOnClickListener(v -> {
+                if (cbHideNormalCruiseSpeedEnabled != null) cbHideNormalCruiseSpeedEnabled.toggle();
+            });
         }
 
-        cbNormalTmcEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.normalTmcEnabled = isChecked;
-            activity.savePreferences();
-            if (tvNormalTmcStatus != null) {
-                tvNormalTmcStatus.setText(isChecked ? "TMC路况进度条已启用" : "TMC路况进度条已禁用");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+        if (cbNormalTmcEnabled != null) {
+            cbNormalTmcEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.normalTmcEnabled = isChecked;
+                activity.savePreferences();
+                if (tvNormalTmcStatus != null) {
+                    tvNormalTmcStatus.setText(isChecked ? "TMC路况进度条已启用" : "TMC路况进度条已禁用");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardNormalTmcToggle != null) {
-            cardNormalTmcToggle.setOnClickListener(v -> cbNormalTmcEnabled.toggle());
+            cardNormalTmcToggle.setOnClickListener(v -> {
+                if (cbNormalTmcEnabled != null) cbNormalTmcEnabled.toggle();
+            });
         }
 
-        cbNormalBottomInfoEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            activity.normalBottomInfoEnabled = isChecked;
-            activity.savePreferences();
-            if (tvNormalBottomInfoStatus != null) {
-                tvNormalBottomInfoStatus.setText(isChecked ? "底栏到达信息已启用" : "底栏到达信息已禁用");
-            }
-            FloatingWindowManager fwm = FloatingWindowManager.getInstance();
-            if (fwm != null) {
-                fwm.refreshWindow();
-            }
-        });
+        if (cbNormalBottomInfoEnabled != null) {
+            cbNormalBottomInfoEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                activity.normalBottomInfoEnabled = isChecked;
+                activity.savePreferences();
+                if (tvNormalBottomInfoStatus != null) {
+                    tvNormalBottomInfoStatus.setText(isChecked ? "底栏到达信息已启用" : "底栏到达信息已禁用");
+                }
+                FloatingWindowManager fwm = FloatingWindowManager.getInstance();
+                if (fwm != null) {
+                    fwm.refreshWindow();
+                }
+            });
+        }
         if (cardNormalBottomInfoToggle != null) {
-            cardNormalBottomInfoToggle.setOnClickListener(v -> cbNormalBottomInfoEnabled.toggle());
+            cardNormalBottomInfoToggle.setOnClickListener(v -> {
+                if (cbNormalBottomInfoEnabled != null) cbNormalBottomInfoEnabled.toggle();
+            });
         }
     }
 
     public void loadSettings() {
-        cbNormalLaneEnabled.setChecked(activity.normalLaneEnabled);
+        if (cbNormalLaneEnabled != null) cbNormalLaneEnabled.setChecked(activity.normalLaneEnabled);
         if (tvNormalLaneStatus != null) {
             tvNormalLaneStatus.setText(activity.normalLaneEnabled ? "车道线已启用" : "车道线已禁用");
         }
 
-        cbHideTurnIconBg.setChecked(activity.hideTurnIconBg);
+        if (cbHideTurnIconBg != null) cbHideTurnIconBg.setChecked(activity.hideTurnIconBg);
         if (tvHideTurnIconBgStatus != null) {
             tvHideTurnIconBgStatus.setText(activity.hideTurnIconBg ? "背景已隐藏" : "背景已显示");
         }
 
-        cbNormalCruiseInfoEnabled.setChecked(activity.normalCruiseInfoEnabled);
+        if (cbNormalCruiseInfoEnabled != null) cbNormalCruiseInfoEnabled.setChecked(activity.normalCruiseInfoEnabled);
         if (tvNormalCruiseInfoStatus != null) {
             tvNormalCruiseInfoStatus.setText(activity.normalCruiseInfoEnabled ? "第一排图文信息已启用" : "第一排图文信息已禁用");
         }
 
-        cbHideNormalCruiseSpeedEnabled.setChecked(activity.hideNormalCruiseSpeed);
+        if (cbHideNormalCruiseSpeedEnabled != null) cbHideNormalCruiseSpeedEnabled.setChecked(activity.hideNormalCruiseSpeed);
         if (tvHideNormalCruiseSpeedStatus != null) {
             tvHideNormalCruiseSpeedStatus.setText(activity.hideNormalCruiseSpeed ? "已隐藏常规巡航车速" : "常规巡航时显示车速");
         }
 
-        cbNormalTmcEnabled.setChecked(activity.normalTmcEnabled);
+        if (cbNormalTmcEnabled != null) cbNormalTmcEnabled.setChecked(activity.normalTmcEnabled);
         if (tvNormalTmcStatus != null) {
             tvNormalTmcStatus.setText(activity.normalTmcEnabled ? "TMC路况进度条已启用" : "TMC路况进度条已禁用");
         }
 
-        cbNormalBottomInfoEnabled.setChecked(activity.normalBottomInfoEnabled);
+        if (cbNormalBottomInfoEnabled != null) cbNormalBottomInfoEnabled.setChecked(activity.normalBottomInfoEnabled);
         if (tvNormalBottomInfoStatus != null) {
             tvNormalBottomInfoStatus.setText(activity.normalBottomInfoEnabled ? "底栏到达信息已启用" : "底栏到达信息已禁用");
         }
+    }
+
+    public void updateThemeColors() {
+        updateThemeColors(activity.getAccentColor());
     }
 
     public void updateThemeColors(int accentColor) {

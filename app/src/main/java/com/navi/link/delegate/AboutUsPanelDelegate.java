@@ -53,7 +53,7 @@ public class AboutUsPanelDelegate {
         setupListeners();
     }
 
-    private void setupListeners() {
+    public void setupListeners() {
         if (tvAboutQqGroup != null) {
             tvAboutQqGroup.setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -207,5 +207,8 @@ public class AboutUsPanelDelegate {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void updateThemeColors() {
     }
 }

@@ -1,18 +1,10 @@
 package com.navi.link.delegate;
-import com.navi.link.R;
-import com.navi.link.BuildConfig;
-import com.navi.link.activity.*;
-import com.navi.link.delegate.*;
-import com.navi.link.window.*;
-import com.navi.link.view.*;
-import com.navi.link.receiver.*;
-import com.navi.link.service.*;
-import com.navi.link.utils.*;
 
+import com.navi.link.R;
+import com.navi.link.activity.MainActivity;
+import com.navi.link.window.FloatingWindowManager;
 
 import android.graphics.Color;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import androidx.appcompat.widget.SwitchCompat;
@@ -38,7 +30,6 @@ public class TrafficLightPanelDelegate {
     private MaterialCardView cardFontDefault, cardFontOne, cardFontTwo, cardFontThree;
     private RadioButton rbFontDefault, rbFontOne, rbFontTwo, rbFontThree;
 
-
     public TrafficLightPanelDelegate(MainActivity activity) {
         this.activity = activity;
     }
@@ -60,13 +51,10 @@ public class TrafficLightPanelDelegate {
         cardFontOne = activity.findViewById(R.id.card_font_one);
         cardFontTwo = activity.findViewById(R.id.card_font_two);
         cardFontThree = activity.findViewById(R.id.card_font_three);
-
         rbFontDefault = activity.findViewById(R.id.rb_font_default);
         rbFontOne = activity.findViewById(R.id.rb_font_one);
         rbFontTwo = activity.findViewById(R.id.rb_font_two);
         rbFontThree = activity.findViewById(R.id.rb_font_three);
-
-
 
         cardTrafficLightStyle[0] = activity.findViewById(R.id.card_traffic_light_style_0);
         cardTrafficLightStyle[1] = activity.findViewById(R.id.card_traffic_light_style_1);
@@ -79,7 +67,7 @@ public class TrafficLightPanelDelegate {
         setupListeners();
     }
 
-    private void setupListeners() {
+    public void setupListeners() {
         if (cbTrafficLightFillEnabled != null) {
             cbTrafficLightFillEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 activity.isTrafficLightFillEnabled = isChecked;
@@ -106,7 +94,7 @@ public class TrafficLightPanelDelegate {
                 activity.isTrafficLightCapsuleEnabled = isChecked;
                 activity.savePreferences();
                 if (tvTrafficLightCapsuleStatus != null) {
-                    tvTrafficLightCapsuleStatus.setText(isChecked ? "显示胶囊深蓝色背景" : "隐藏胶囊背景");
+                    tvTrafficLightCapsuleStatus.setText(isChecked ? "显示黑灰半透明胶囊框" : "隐藏胶囊框 (更干净)");
                 }
                 FloatingWindowManager fwm = FloatingWindowManager.getInstance();
                 if (fwm != null) {
@@ -127,7 +115,7 @@ public class TrafficLightPanelDelegate {
                 activity.isTrafficLightIconEnabled = isChecked;
                 activity.savePreferences();
                 if (tvTrafficLightIconStatus != null) {
-                    tvTrafficLightIconStatus.setText(isChecked ? "胶囊灯图图标已显示" : "胶囊灯图图标已隐藏");
+                    tvTrafficLightIconStatus.setText(isChecked ? "显示红绿灯方向图标" : "只显示数字不显示灯图");
                 }
                 FloatingWindowManager fwm = FloatingWindowManager.getInstance();
                 if (fwm != null) {
@@ -143,44 +131,34 @@ public class TrafficLightPanelDelegate {
             });
         }
 
-        for (int i = 0; i < cardTrafficLightStyle.length; i++) {
-            final int style = i;
-            if (cardTrafficLightStyle[i] != null) {
-                cardTrafficLightStyle[i].setOnClickListener(v -> activity.selectTrafficLightStyle(style));
-            }
-        }
-
         if (cardFontDefault != null) cardFontDefault.setOnClickListener(v -> activity.selectCountdownFont(0));
         if (cardFontOne != null) cardFontOne.setOnClickListener(v -> activity.selectCountdownFont(1));
         if (cardFontTwo != null) cardFontTwo.setOnClickListener(v -> activity.selectCountdownFont(2));
         if (cardFontThree != null) cardFontThree.setOnClickListener(v -> activity.selectCountdownFont(3));
 
-
+        for (int i = 0; i < cardTrafficLightStyle.length; i++) {
+            final int styleIndex = i;
+            if (cardTrafficLightStyle[i] != null) {
+                cardTrafficLightStyle[i].setOnClickListener(v -> activity.selectTrafficLightStyle(styleIndex));
+            }
+        }
     }
 
     public void loadSettings() {
-        if (cbTrafficLightFillEnabled != null) {
-            cbTrafficLightFillEnabled.setChecked(activity.isTrafficLightFillEnabled);
-            if (tvTrafficLightFillStatus != null) {
-                tvTrafficLightFillStatus.setText(activity.isTrafficLightFillEnabled ? "红绿灯胶囊背景已填充灯色" : "深蓝胶囊背景");
-            }
+        if (cbTrafficLightFillEnabled != null) cbTrafficLightFillEnabled.setChecked(activity.isTrafficLightFillEnabled);
+        if (tvTrafficLightFillStatus != null) {
+            tvTrafficLightFillStatus.setText(activity.isTrafficLightFillEnabled ? "红绿灯胶囊背景已填充灯色" : "深蓝胶囊背景");
         }
 
-        if (cbTrafficLightCapsuleEnabled != null) {
-            cbTrafficLightCapsuleEnabled.setChecked(activity.isTrafficLightCapsuleEnabled);
-            if (tvTrafficLightCapsuleStatus != null) {
-                tvTrafficLightCapsuleStatus.setText(activity.isTrafficLightCapsuleEnabled ? "显示胶囊深蓝色背景" : "隐藏胶囊背景");
-            }
+        if (cbTrafficLightCapsuleEnabled != null) cbTrafficLightCapsuleEnabled.setChecked(activity.isTrafficLightCapsuleEnabled);
+        if (tvTrafficLightCapsuleStatus != null) {
+            tvTrafficLightCapsuleStatus.setText(activity.isTrafficLightCapsuleEnabled ? "显示黑灰半透明胶囊框" : "隐藏胶囊框 (更干净)");
         }
 
-        if (cbTrafficLightIconEnabled != null) {
-            cbTrafficLightIconEnabled.setChecked(activity.isTrafficLightIconEnabled);
-            if (tvTrafficLightIconStatus != null) {
-                tvTrafficLightIconStatus.setText(activity.isTrafficLightIconEnabled ? "胶囊灯图图标已显示" : "胶囊灯图图标已隐藏");
-            }
+        if (cbTrafficLightIconEnabled != null) cbTrafficLightIconEnabled.setChecked(activity.isTrafficLightIconEnabled);
+        if (tvTrafficLightIconStatus != null) {
+            tvTrafficLightIconStatus.setText(activity.isTrafficLightIconEnabled ? "显示红绿灯方向图标" : "只显示数字不显示灯图");
         }
-
-
 
         updateTrafficLightStyleSelection();
         updateCountdownFontSelection();
@@ -208,6 +186,11 @@ public class TrafficLightPanelDelegate {
         if (cardFontOne != null) cardFontOne.setStrokeColor(activity.countdownFontIndex == 1 ? accentColor : normalColor);
         if (cardFontTwo != null) cardFontTwo.setStrokeColor(activity.countdownFontIndex == 2 ? accentColor : normalColor);
         if (cardFontThree != null) cardFontThree.setStrokeColor(activity.countdownFontIndex == 3 ? accentColor : normalColor);
+    }
+
+    public void updateThemeColors() {
+        int accentColor = activity.getAccentColor();
+        updateThemeColors(accentColor, android.content.res.ColorStateList.valueOf(accentColor));
     }
 
     public void updateThemeColors(int accentColor, android.content.res.ColorStateList accentColorStateList) {

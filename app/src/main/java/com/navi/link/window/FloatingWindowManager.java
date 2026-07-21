@@ -301,16 +301,21 @@ public class FloatingWindowManager {
     public void hide() {
         handler.removeCallbacksAndMessages(null);
         dismissClusterMirror();
-        if (floatingView == null || !isShowing) return;
-        try {
-            windowManager.removeView(floatingView);
-        } catch (Exception ignored) {
+        if (floatingView != null) {
+            try {
+                windowManager.removeViewImmediate(floatingView);
+            } catch (Exception e1) {
+                try {
+                    windowManager.removeView(floatingView);
+                } catch (Exception ignored) {
+                }
+            }
+            if (activeWindow != null) {
+                activeWindow.onDestroy();
+                activeWindow = null;
+            }
+            floatingView = null;
         }
-        if (activeWindow != null) {
-            activeWindow.onDestroy();
-            activeWindow = null;
-        }
-        floatingView = null;
         isShowing = false;
     }
 
@@ -525,18 +530,18 @@ public class FloatingWindowManager {
         scaleTarget = null;
         dismissClusterMirror();
 
-        if (floatingView != null && layoutParams != null) {
-            // 只有当用户手动拖拽过才更新保存的位置
-            // 如果是自动重建（如模式切换），保留之前保存的位置
-            if (oldSavedPosX < 0) {
+        if (floatingView != null) {
+            if (oldSavedPosX < 0 && layoutParams != null) {
                 savedPosX = layoutParams.x;
                 savedPosY = layoutParams.y;
             }
             try {
-                if (ViewCompat.isAttachedToWindow(floatingView)) {
+                windowManager.removeViewImmediate(floatingView);
+            } catch (Exception e1) {
+                try {
                     windowManager.removeView(floatingView);
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
             }
             if (activeWindow != null) {
                 activeWindow.onDestroy();
@@ -903,7 +908,6 @@ public class FloatingWindowManager {
         if (target == null) target = targetScale;
         if (target == null) target = root;
 
-        // 透明背景模式处理
         // 根据样式确定圆角: 灵动岛/灵动岛巡航=40dp, 常规/常规巡航/全数据=12dp
         int effectiveStyle = currentMode == MODE_CRUISE ? cruiseStyleMode : styleMode;
         boolean isIslandStyle = effectiveStyle == 1;
@@ -911,16 +915,46 @@ public class FloatingWindowManager {
         int cornerPx = Math.round(dpToPx(cornerDp) * getScale());
 
         SharedPreferences sp = context.getSharedPreferences("floating_config", Context.MODE_PRIVATE);
-        // 读取自定义背景色（白天默认：0xE6F5F5F5，夜间默认：0xCC121212），直接原样呈现，不作黑化折算
-        int bgColor = isNightMode ? 
-            sp.getInt("bg_color_night", 0xCC121212) : 
+        int bgColor = isNightMode ?
+            sp.getInt("bg_color_night", 0xCC121212) :
             sp.getInt("bg_color_day", 0xE6F5F5F5);
 
-        GradientDrawable bgDrawable = new GradientDrawable();
-        bgDrawable.setShape(GradientDrawable.RECTANGLE);
-        bgDrawable.setColor(bgColor);
-        bgDrawable.setCornerRadius(cornerPx);
-        target.setBackground(bgDrawable);
+        // 获取旧背景色用于平滑过渡
+        int oldColor = bgColor;
+        if (target.getBackground() instanceof GradientDrawable) {
+            try {
+                android.content.res.ColorStateList csl = ((GradientDrawable) target.getBackground()).getColor();
+                if (csl != null) oldColor = csl.getDefaultColor();
+            } catch (Exception ignored) {}
+        }
+
+        final int fCornerPx = cornerPx;
+        final View fTarget = target;
+
+        if (oldColor != bgColor) {
+            // 平滑过渡背景色
+            ValueAnimator animator = ValueAnimator.ofArgb(oldColor, bgColor);
+            animator.setDuration(300);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int animColor = (int) animation.getAnimatedValue();
+                    GradientDrawable d = new GradientDrawable();
+                    d.setShape(GradientDrawable.RECTANGLE);
+                    d.setColor(animColor);
+                    d.setCornerRadius(fCornerPx);
+                    fTarget.setBackground(d);
+                }
+            });
+            animator.start();
+        } else {
+            // 无变化直接设置
+            GradientDrawable bgDrawable = new GradientDrawable();
+            bgDrawable.setShape(GradientDrawable.RECTANGLE);
+            bgDrawable.setColor(bgColor);
+            bgDrawable.setCornerRadius(cornerPx);
+            target.setBackground(bgDrawable);
+        }
     }
 
     /**
@@ -1577,11 +1611,13 @@ public class FloatingWindowManager {
     private void dismissClusterMirror() {
         if (clusterFloatingView != null && clusterWindowManager != null) {
             try {
-                if (ViewCompat.isAttachedToWindow(clusterFloatingView)
-                        || clusterFloatingView.getParent() != null) {
+                clusterWindowManager.removeViewImmediate(clusterFloatingView);
+            } catch (Exception e1) {
+                try {
                     clusterWindowManager.removeView(clusterFloatingView);
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {}
+            }
             if (clusterActiveWindow != null) {
                 clusterActiveWindow.onDestroy();
                 clusterActiveWindow = null;

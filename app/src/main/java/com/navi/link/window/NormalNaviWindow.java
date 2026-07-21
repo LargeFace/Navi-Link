@@ -107,6 +107,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
         }
         updateTurnIconBackground();
         updateBottomContainerVisibility();
+        updateCameraCapsuleBackground(cameraWarningView);
     }
 
     private void updateTurnIconBackground() {

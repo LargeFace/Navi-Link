@@ -127,7 +127,7 @@
                 android:layout_height="34dp"
                 android:layout_marginStart="5dp"
                 android:scaleType="centerInside"
-                android:src="@mipmap/light_straight"/>
+                android:src="@mipmap/light_u_turn"/>
             <TextView
                 android:id="@+id/tv_distance_num_full"
                 android:layout_width="wrap_content"
@@ -329,7 +329,7 @@
                     android:background="#E0E0E0"/>
             </LinearLayout>
              <ImageView
-
+                    android:rotation="90"
                  android:background="@drawable/camera_shape"
                  android:src="@drawable/camera_light"
                  android:layout_width="40dp"

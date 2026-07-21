@@ -208,6 +208,122 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
+                <!-- Day/Night mode choice -->
+                <TextView
+                    android:text="配置页日夜模式"
+                    android:textSize="12sp"
+                    android:textColor="?attr/panelTextColorSecondary"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="6dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_day_night_follow"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardBackgroundColor="?attr/panelCardBgColor"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/panelCardStrokeColor"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <RadioButton
+                                android:id="@+id/rb_day_night_follow"
+                                android:textSize="13sp"
+                                android:textColor="?attr/panelTextColorPrimary"
+                                android:clickable="false"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="跟随高德"
+                                android:buttonTint="#FF4FC3F7" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_day_night_day"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardBackgroundColor="?attr/panelCardBgColor"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/panelCardStrokeColor"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <RadioButton
+                                android:id="@+id/rb_day_night_day"
+                                android:textSize="13sp"
+                                android:textColor="?attr/panelTextColorPrimary"
+                                android:clickable="false"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="白天模式"
+                                android:buttonTint="#FF4FC3F7" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_day_night_night"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="?attr/panelCardBgColor"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/panelCardStrokeColor"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <RadioButton
+                                android:id="@+id/rb_day_night_night"
+                                android:textSize="13sp"
+                                android:textColor="?attr/panelTextColorPrimary"
+                                android:clickable="false"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="夜间模式"
+                                android:buttonTint="#FF4FC3F7" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
                 <!-- Style choices -->
                 <TextView
                     android:text="导航窗口样式"

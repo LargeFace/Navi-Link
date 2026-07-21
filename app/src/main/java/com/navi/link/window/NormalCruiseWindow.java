@@ -45,6 +45,7 @@ public class NormalCruiseWindow extends BaseFloatingWindow {
         laneLineView = floatingView.findViewById(R.id.lane_line_view);
         llCnCameraDist = floatingView.findViewById(R.id.ll_cn_camera_dist);
         llCruiseNormalFirstRow = floatingView.findViewById(R.id.ll_cruise_normal_first_row);
+        updateCameraCapsuleBackground(llCnCameraDist);
     }
 
     @Override

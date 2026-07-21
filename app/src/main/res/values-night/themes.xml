@@ -1,6 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Night Theme -->
     <style name="Theme.NaviLink" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF4FC3F7</item>
+        <item name="colorSecondary">#FF4FC3F7</item>
+        <item name="colorControlActivated">#FF4FC3F7</item>
+        <item name="colorAccent">#FF4FC3F7</item>
         <item name="android:windowBackground">#FF121212</item>
         <item name="panelBgColor">#FF121212</item>
         <item name="panelCardBgColor">#FF1E1E1E</item>

@@ -48,6 +48,7 @@ public class FullCruiseWindow extends BaseFloatingWindow {
         laneLineViewFullCruise = floatingView.findViewById(R.id.lane_line_view_full_cruise);
         llFullCruiseCamera = floatingView.findViewById(R.id.ll_full_cruise_camera);
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
+        updateCameraCapsuleBackground(llFullCruiseCamera);
     }
 
     @Override

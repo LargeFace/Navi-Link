@@ -25,8 +25,8 @@ public class AmapNaviReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (!"AUTONAVI_STANDARD_BROADCAST_SEND".equals(intent.getAction())) return;
 
-        FloatingWindowManager manager = FloatingWindowManager.getInstance();
-        if (manager == null || !manager.isShowing()) return;
+        FloatingWindowManager manager = FloatingWindowManager.getInstance(context);
+        if (manager == null) return;
 
         int keyType = intent.getIntExtra("KEY_TYPE", 0);
 
@@ -41,6 +41,37 @@ public class AmapNaviReceiver extends BroadcastReceiver {
             }
             Log.d(TAG, "==========================================================");
         }
+
+        // 昼夜模式切换及前后台、结束状态广播
+        if (keyType == 10019) {
+            int extraState = getIntSafe(intent, "EXTRA_STATE", -1);
+            if (extraState == 37 || extraState == 38) {
+                boolean isNight = (extraState == 38);
+                manager.onDayNightChanged(isNight);
+            } else if (extraState == 3 || extraState == 4) {
+                boolean isForeground = (extraState == 3);
+                manager.onAmapForegroundChanged(isForeground);
+            } else if (extraState == 9) {
+                manager.onNavigationEnded();
+            } else if (extraState == 25) {
+                manager.onCruiseEnded();
+            } else if (extraState == 40) {
+                if (manager.isActive() && !manager.isNavigationJustEnded() && !manager.isCruiseJustEnded()) {
+                    manager.resetWatchdog();
+                }
+            }
+
+            // 路口放大图状态（EXTRA_CROSS_MAP = 1 表示有路口放大图）
+            if (intent.hasExtra("EXTRA_CROSS_MAP")) {
+                int crossMap = getIntSafe(intent, "EXTRA_CROSS_MAP", 0);
+                manager.updateCrossMapStatus(crossMap);
+            }
+
+            return;
+        }
+
+        if (!manager.isShowing()) return;
+
         if (keyType == 12110) {
             manager.resetWatchdog();
             if (manager.getCurrentMode() == FloatingWindowManager.MODE_NAVI) {
@@ -81,34 +112,6 @@ public class AmapNaviReceiver extends BroadcastReceiver {
             if (driveWay != null) {
                 manager.updateLaneLines(driveWay);
             }
-            return;
-        }
-
-        // 昼夜模式切换及前后台、结束状态广播
-        if (keyType == 10019) {
-            int extraState = getIntSafe(intent, "EXTRA_STATE", -1);
-            if (extraState == 37 || extraState == 38) {
-                boolean isNight = (extraState == 38);
-                manager.onDayNightChanged(isNight);
-            } else if (extraState == 3 || extraState == 4) {
-                boolean isForeground = (extraState == 3);
-                manager.onAmapForegroundChanged(isForeground);
-            } else if (extraState == 9) {
-                manager.onNavigationEnded();
-            } else if (extraState == 25) {
-                manager.onCruiseEnded();
-            } else if (extraState == 40) {
-                if (manager.isActive() && !manager.isNavigationJustEnded() && !manager.isCruiseJustEnded()) {
-                    manager.resetWatchdog();
-                }
-            }
-
-            // 路口放大图状态（EXTRA_CROSS_MAP = 1 表示有路口放大图）
-            if (intent.hasExtra("EXTRA_CROSS_MAP")) {
-                int crossMap = getIntSafe(intent, "EXTRA_CROSS_MAP", 0);
-                manager.updateCrossMapStatus(crossMap);
-            }
-
             return;
         }
 

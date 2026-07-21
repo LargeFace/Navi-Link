@@ -263,4 +263,18 @@ public abstract class BaseFloatingWindow {
     public void updateIntervalSpeed(int startDist, String startDistText, int avgSpeed, String endDistText, int limitSpeed) {
         // To be overridden by subclasses
     }
+
+    /**
+     * 更新摄像头胶囊背景显隐（读取 hide_camera_capsule_bg 配置）
+     * 全数据导航卡片（FullNaviWindow）不调用此方法
+     */
+    protected void updateCameraCapsuleBackground(View cameraView) {
+        if (cameraView == null) return;
+        boolean hideBg = sp.getBoolean("hide_camera_capsule_bg", false);
+        if (hideBg) {
+            cameraView.setBackground(null);
+        } else {
+            cameraView.setBackgroundResource(R.drawable.bg_traffic_light_capsule);
+        }
+    }
 }

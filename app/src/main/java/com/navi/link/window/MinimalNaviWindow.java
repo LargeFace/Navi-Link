@@ -75,6 +75,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         }
 
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
+        updateCameraCapsuleBackground(llMinNaviCameraGroup);
     }
 
     @Override
@@ -284,6 +285,7 @@ public class MinimalNaviWindow extends BaseFloatingWindow {
         if (tvMinSpeed != null && !isOverspeedBlinking) {
             tvMinSpeed.setTextColor(textPrimary);
         }
+        if (llMinNaviCameraGroup != null) llMinNaviCameraGroup.setTextColor(textPrimary);
     }
 
     @Override

@@ -56,6 +56,7 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
             laneLineViewMin.setSimpleMode(true);
         }
         themeColor = sp.getInt("theme_color", 0xFF4FC3F7);
+        updateCameraCapsuleBackground(llMinCruiseCameraGroup);
     }
 
     @Override
@@ -276,6 +277,7 @@ public class MinimalCruiseWindow extends BaseFloatingWindow {
         if (tvCruiseSpeed != null && !isOverspeedBlinking) {
             tvCruiseSpeed.setTextColor(textPrimary);
         }
+        if (llMinCruiseCameraGroup != null) llMinCruiseCameraGroup.setTextColor(textPrimary);
     }
 
     @Override
