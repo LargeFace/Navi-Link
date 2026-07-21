@@ -448,7 +448,7 @@ public class NormalNaviWindow extends BaseFloatingWindow {
             bottomGrad.setShape(GradientDrawable.RECTANGLE);
             bottomGrad.setColor(bottomBgColor);
             
-            float r = dpToPx(16);
+            float r = dpToPx(12);
             bottomGrad.setCornerRadii(new float[]{0, 0, 0, 0, r, r, r, r});
             layoutBottomContainer.setBackground(bottomGrad);
         }

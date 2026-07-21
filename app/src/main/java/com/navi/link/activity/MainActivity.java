@@ -10,6 +10,8 @@ import com.navi.link.view.UpdateDialog;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.util.TypedValue;
 import android.graphics.Color;
@@ -17,10 +19,20 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.List;
+import java.util.ArrayList;
+
+import android.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -563,11 +575,91 @@ public class MainActivity extends AppCompatActivity {
 
     // Delegation Helper Actions
     public void selectStartupMode(int mode) {
+        if (mode == 2) {
+            if (startupMode == 2 || TextUtils.isEmpty(targetAmapPackage)) {
+                showAmapSelectionDialog();
+            } else {
+                setStartupMode(2);
+            }
+            return;
+        }
+        setStartupMode(mode);
+    }
+
+    private void setStartupMode(int mode) {
         if (this.startupMode == mode) return;
         this.startupMode = mode;
         this.isServiceOnlyMode = (mode == 1);
         systemAppearanceDelegate.updateStartupSelection();
         savePreferences();
+    }
+
+    private void showAmapSelectionDialog() {
+        PackageManager pm = getPackageManager();
+        List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        // Android 15 上 getInstalledApplications 可能被系统阉割过滤，按包名硬拿补充
+        String[] knownPackages = {
+            "com.autonavi.amapautp",
+            "com.autonavi.amapauto",
+            "com.autonavi.minimap"
+        };
+        for (String kp : knownPackages) {
+            try {
+                ApplicationInfo info = pm.getApplicationInfo(kp, PackageManager.GET_META_DATA);
+                boolean exists = false;
+                for (ApplicationInfo a : apps) {
+                    if (kp.equals(a.packageName)) { exists = true; break; }
+                }
+                if (!exists) apps.add(info);
+            } catch (Exception ignored) { }
+        }
+
+        List<ApplicationInfo> amapApps = new ArrayList<>();
+        for (ApplicationInfo app : apps) {
+            CharSequence labelSeq = pm.getApplicationLabel(app);
+            String label = labelSeq != null ? labelSeq.toString() : "";
+            if (app.packageName != null) {
+                String pkg = app.packageName.toLowerCase();
+                if (pkg.contains("autonavi") || pkg.contains("amap") || label.contains("高德")) {
+                    amapApps.add(app);
+                }
+            }
+        }
+
+        if (amapApps.isEmpty()) {
+            Toast.makeText(this, "未找到已安装的高德地图应用", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayAdapter<ApplicationInfo> adapter = new ArrayAdapter<ApplicationInfo>(this, R.layout.item_app_list, amapApps) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_app_list, parent, false);
+                }
+                ApplicationInfo appInfo = getItem(position);
+                ImageView icon = convertView.findViewById(R.id.iv_app_icon);
+                TextView name = convertView.findViewById(R.id.tv_app_name);
+                TextView pkg = convertView.findViewById(R.id.tv_app_package);
+                if (appInfo != null) {
+                    icon.setImageDrawable(appInfo.loadIcon(pm));
+                    name.setText(appInfo.loadLabel(pm).toString());
+                    name.setTextColor(getThemeColorAttr(R.attr.panelTextColorPrimary));
+                    pkg.setText(appInfo.packageName);
+                    pkg.setTextColor(getThemeColorAttr(R.attr.panelTextColorSecondary));
+                }
+                return convertView;
+            }
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("选择高德地图应用")
+                .setAdapter(adapter, (dialog, which) -> {
+                    targetAmapPackage = amapApps.get(which).packageName;
+                    setStartupMode(2);
+                })
+                .show();
     }
 
     public void selectStyle(int mode) {
