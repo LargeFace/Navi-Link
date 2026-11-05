@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.widget.Toast;
 
@@ -68,14 +70,17 @@ public class RouterActivity extends AppCompatActivity {
         FloatingWindowManager manager = FloatingWindowManager.getInstance();
         if (manager == null || !manager.isShowing()) {
             startAutoMapService();
-            Toast.makeText(this, "服务已启动", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "服务已启动", Toast.LENGTH_SHORT).show();
         }
 
         String targetPackage = sp.getString("target_amap_package", "");
         if (!android.text.TextUtils.isEmpty(targetPackage)) {
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(targetPackage);
             if (launchIntent != null) {
-                startActivity(launchIntent);
+                //Toast.makeText(this, "正在启动目标应用", Toast.LENGTH_SHORT).show();
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    startActivity(launchIntent);
+                }, 500L); // 延迟500毫秒
             } else {
                 Toast.makeText(this, "未找到已配置的高德相关应用", Toast.LENGTH_SHORT).show();
                 startMainActivity();
