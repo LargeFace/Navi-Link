@@ -79,6 +79,7 @@ public class FloatingWindowManager {
     private boolean isNightMode = true; // 默认夜间（深色文字）
     private int backgroundMode = 0; // 0=深色, 1=半透明, 2=全透明
     private boolean isAmapForeground = false;
+    private boolean isRebroadcast = true;
 
     // 透明主题文字颜色常量
     // 亮色背景（高德白天）用深色文字
@@ -863,22 +864,24 @@ public class FloatingWindowManager {
      * 高德昼夜模式变化回调
      */
     public void onDayNightChanged(boolean isNight) {
+        if (isRebroadcast) {
+            isRebroadcast = false;
+            // 首次接收到高德昼夜广播，延时1秒转发
+            handler.postDelayed(() -> {
+                try {
+                    Intent intent = new Intent("AUTONAVI_STANDARD_BROADCAST_SEND");
+                    intent.putExtra("KEY_TYPE", 10019);
+                    intent.putExtra("EXTRA_STATUS_DETAILS", -1);
+                    intent.putExtra("EXTRA_STATE", isNight ? 38 : 37);
+                    context.sendBroadcast(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 1000L);
+        }
+
         if (this.isNightMode == isNight) return; // 无变化不刷新
         this.isNightMode = isNight;
-
-        // 延时1秒转发高德昼夜广播
-        handler.postDelayed(() -> {
-            try {
-                Intent intent = new Intent("AUTONAVI_STANDARD_BROADCAST_SEND");
-                intent.putExtra("KEY_TYPE", 10019);
-                intent.putExtra("EXTRA_STATUS_DETAILS", -1);
-                intent.putExtra("EXTRA_STATE", isNight ? 38 : 37);
-                context.sendBroadcast(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 1000L);
-
         saveDayNightState();
         if (backgroundMode > 0) {
             applyThemeColor(); // 重新应用颜色
