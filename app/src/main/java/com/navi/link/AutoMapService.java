@@ -58,7 +58,7 @@ public class AutoMapService extends Service {
         }
 
         // App启动时主动询问高德当前昼夜模式
-        requestAmapDayNightState();
+        //requestAmapDayNightState();
 
         return START_STICKY;
     }
