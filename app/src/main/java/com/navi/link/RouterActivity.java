@@ -78,9 +78,9 @@ public class RouterActivity extends AppCompatActivity {
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(targetPackage);
             if (launchIntent != null) {
                 //Toast.makeText(this, "正在启动目标应用", Toast.LENGTH_SHORT).show();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                //new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     startActivity(launchIntent);
-                }, 500L); // 延迟500毫秒
+                //}, 500L); // 延迟500毫秒
             } else {
                 Toast.makeText(this, "未找到已配置的高德相关应用", Toast.LENGTH_SHORT).show();
                 startMainActivity();
